@@ -1,0 +1,23 @@
+type User implements Node {
+  id: ID! @goField(forceResolver: true)
+  name: String!
+}
+
+type UserPayload {
+  id: ID!
+  name: String!
+}
+
+type Query {
+  users: [User!]!
+}
+
+input NewUser {
+  name: String!
+}
+
+
+
+type Mutation {
+  createUser(input: NewUser!): UserPayload!
+}
