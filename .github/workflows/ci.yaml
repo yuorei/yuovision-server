@@ -1,0 +1,51 @@
+name: CI
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "go.mod"
+
+      - name: Install dependencies
+        run: go mod download
+
+      - name: go mod tidyで差分が出た時に報告
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+          if [ $? -eq 1 ]; then
+            echo "go mod tidy で差分が出ました。手元で go mod tidy を実行してください。"
+            exit 1
+          fi
+
+      - name: make fmt による差分が出た場合に報告
+        run: |
+          make fmt
+          git diff --exit-code
+          if [ $? -eq 1 ]; then
+            echo "make fmt で差分が出ました。手元で make fmt を実行してください。"
+            exit 1
+          fi
+
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test with the Go CLI
+        run: go test -v ./...
