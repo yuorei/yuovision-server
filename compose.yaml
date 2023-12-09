@@ -16,17 +16,17 @@ services:
       - DB_PORT=5432
       - DB_USER=user
       - DB_PASSWORD=password
-      - DB_NAME=MOVIE_SERVICE
-      - DATABASE_URL=postgresql://user:password@postgres:5432/MOVIE_SERVICE?schema=public
+      - DB_NAME=VIDEO_SERVICE
+      - DATABASE_URL=postgresql://user:password@postgres:5432/VIDEO_SERVICE?schema=public
       - TOKEN_SECRET_KEY=secret
-      - BUCKET_NAME=movie-service
+      - BUCKET_NAME=video-service
       - AWS_PROFILE=minio
       - AWS_REGION=ap-northeast-1
       - AWS_ACCESS_KEY_ID=minio
       - AWS_SECRET_ACCESS_KEY=minio123
       - AWS_ENDPOINT_URL=http://minio:9000
       - AWS_S3_FORCE_PATH_STYLE=true
-      - IMAGE_URL=http://localhost:9000/movie
+      - IMAGE_URL=http://localhost:9000/video
       - TZ=Asia/Tokyo
     # restart: always
     command: air -c .air.toml
@@ -36,7 +36,7 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: MOVIE_SERVICE
+      POSTGRES_DB: VIDEO_SERVICE
       TZ: "Asia/Tokyo"
     ports:
       - 5432:5432
@@ -62,7 +62,7 @@ services:
     depends_on:
       - minio
     entrypoint: sh
-    command: -c "mc config host add minio http://minio:9000 minio minio123 && mc mb minio/movie-service"
+    command: -c "mc config host add minio http://minio:9000 minio minio123 && mc mb minio/video-service"
     volumes:
       - ./docker/minio/data:/root/.mc
 

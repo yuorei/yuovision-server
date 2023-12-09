@@ -5,7 +5,7 @@ import (
 
 	"net/http"
 
-	"github.com/yuorei/movie-server/service"
+	"github.com/yuorei/video-server/service"
 )
 
 type authString string

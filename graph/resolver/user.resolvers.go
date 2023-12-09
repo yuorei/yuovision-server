@@ -8,8 +8,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/yuorei/movie-server/graph/generated"
-	"github.com/yuorei/movie-server/graph/model"
+	"github.com/yuorei/video-server/graph/generated"
+	"github.com/yuorei/video-server/graph/model"
 )
 
 // CreateUser is the resolver for the createUser field.

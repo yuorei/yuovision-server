@@ -12,10 +12,10 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 
-	"github.com/yuorei/movie-server/directive"
-	"github.com/yuorei/movie-server/graph/generated"
-	"github.com/yuorei/movie-server/graph/resolver"
-	"github.com/yuorei/movie-server/middleware"
+	"github.com/yuorei/video-server/directive"
+	"github.com/yuorei/video-server/graph/generated"
+	"github.com/yuorei/video-server/graph/resolver"
+	"github.com/yuorei/video-server/middleware"
 )
 
 const defaultPort = "8080"

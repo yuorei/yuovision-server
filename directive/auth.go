@@ -5,7 +5,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"github.com/yuorei/movie-server/middleware"
+	"github.com/yuorei/video-server/middleware"
 )
 
 func Auth(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {

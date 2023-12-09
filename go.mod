@@ -1,4 +1,4 @@
-module github.com/yuorei/movie-server
+module github.com/yuorei/video-server
 
 go 1.21.0
 

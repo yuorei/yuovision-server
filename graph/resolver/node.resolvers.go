@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/yuorei/movie-server/graph/model"
+	"github.com/yuorei/video-server/graph/model"
 )
 
 // Node is the resolver for the node field.
