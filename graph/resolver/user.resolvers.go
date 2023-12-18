@@ -24,7 +24,7 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 
 // ID is the resolver for the id field.
 func (r *userResolver) ID(ctx context.Context, obj *model.User) (string, error) {
-	panic(fmt.Errorf("not implemented: ID - id"))
+	return fmt.Sprintf("user%s%s", "_", obj.ID), nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

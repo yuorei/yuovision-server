@@ -1,0 +1,24 @@
+scalar Upload
+scalar DateTime
+
+type Video implements Node{
+    id: ID! @goField(forceResolver: true)
+    videoURL: String!
+    title: String!
+    thumbnailImageURL: String!
+    description: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    uploader: User! @goField(forceResolver: true)
+}
+
+input UploadVideo {
+    video: Upload!
+    thumbnailImage: Upload
+    title: String!
+    description: String
+}
+
+extend type Mutation {
+    UploadVideo(input: UploadVideo!): Video!
+}
