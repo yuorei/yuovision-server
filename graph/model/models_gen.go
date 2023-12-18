@@ -2,6 +2,10 @@
 
 package model
 
+import (
+	"github.com/99designs/gqlgen/graphql"
+)
+
 type Node interface {
 	IsNode()
 	GetID() string
@@ -9,6 +13,13 @@ type Node interface {
 
 type NewUser struct {
 	Name string `json:"name"`
+}
+
+type UploadVideo struct {
+	Video          graphql.Upload  `json:"video"`
+	ThumbnailImage *graphql.Upload `json:"thumbnailImage,omitempty"`
+	Title          string          `json:"title"`
+	Description    *string         `json:"description,omitempty"`
 }
 
 type User struct {
@@ -23,3 +34,17 @@ type UserPayload struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
+
+type Video struct {
+	ID                string  `json:"id"`
+	VideoURL          string  `json:"videoURL"`
+	Title             string  `json:"title"`
+	ThumbnailImageURL string  `json:"thumbnailImageURL"`
+	Description       *string `json:"description,omitempty"`
+	CreatedAt         string  `json:"createdAt"`
+	UpdatedAt         string  `json:"updatedAt"`
+	Uploader          *User   `json:"uploader"`
+}
+
+func (Video) IsNode()            {}
+func (this Video) GetID() string { return this.ID }
