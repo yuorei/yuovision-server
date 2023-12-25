@@ -1,7 +1,6 @@
-package main
+package router
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,22 +8,17 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
 	"github.com/rs/cors"
-
 	"github.com/yuorei/video-server/directive"
 	"github.com/yuorei/video-server/graph/generated"
-	"github.com/yuorei/video-server/graph/resolver"
+
+	resolver "github.com/yuorei/video-server/app/adapter/presentation/resolver"
+	"github.com/yuorei/video-server/app/application"
 	"github.com/yuorei/video-server/middleware"
 )
 
-const defaultPort = "8080"
-
-func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Printf("Could not load: %v", err)
-	}
+func NewRouter() {
+	const defaultPort = "8080"
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -34,7 +28,9 @@ func main() {
 	router := mux.NewRouter()
 	router.Use(middleware.AuthMiddleware)
 
-	c := generated.Config{Resolvers: &resolver.Resolver{}}
+	app := application.NewApplication()
+	r := resolver.NewResolver(app)
+	c := generated.Config{Resolvers: r}
 	c.Directives.Auth = directive.Auth
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
@@ -44,21 +40,9 @@ func main() {
 		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodOptions},
 		AllowedHeaders: []string{"*"},
 	})
+
 	router.PathPrefix("/graphql").Handler(corsOpts.Handler(srv))
 	router.PathPrefix("/").Handler(playground.Handler("GraphQL playground", "/graphql"))
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
-}
-
-func init() {
-	yuorei :=
-		`
-██╗   ██╗██╗   ██╗ ██████╗ ██████╗ ███████╗██╗
-╚██╗ ██╔╝██║   ██║██╔═══██╗██╔══██╗██╔════╝██║
- ╚████╔╝ ██║   ██║██║   ██║██████╔╝█████╗  ██║
-  ╚██╔╝  ██║   ██║██║   ██║██╔══██╗██╔══╝  ██║
-   ██║   ╚██████╔╝╚██████╔╝██║  ██║███████╗██║
-   ╚═╝    ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝
-`
-	fmt.Println(yuorei)
 }
