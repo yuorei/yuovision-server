@@ -8,8 +8,8 @@ import (
 	"context"
 	"fmt"
 
+	model "github.com/yuorei/video-server/app/domain/models"
 	"github.com/yuorei/video-server/graph/generated"
-	"github.com/yuorei/video-server/graph/model"
 )
 
 // CreateUser is the resolver for the createUser field.
@@ -24,7 +24,7 @@ func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
 
 // ID is the resolver for the id field.
 func (r *userResolver) ID(ctx context.Context, obj *model.User) (string, error) {
-	return fmt.Sprintf("user%s%s", "_", obj.ID), nil
+	return obj.ID, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
