@@ -15,7 +15,6 @@ type (
 		ThumbnailImage *graphql.Upload
 		Title          string
 		Description    *string
-		now            time.Time
 	}
 
 	UploadVideoResponse struct {
