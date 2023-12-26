@@ -13,7 +13,7 @@ import (
 )
 
 // UploadVideo is the resolver for the UploadVideo field.
-func (r *mutationResolver) UploadVideo(ctx context.Context, input model.UploadVideo) (*model.Video, error) {
+func (r *mutationResolver) UploadVideo(ctx context.Context, input model.UploadVideoInput) (*model.VideoPayload, error) {
 	videoID := domain.NewVideoID()
 	uploadVideo := domain.NewUploadVideo(videoID, input.Video, input.ThumbnailImage, input.Title, input.Description)
 	uploadedVideo, err := r.adapter.UploadVideo(uploadVideo)
@@ -21,7 +21,7 @@ func (r *mutationResolver) UploadVideo(ctx context.Context, input model.UploadVi
 		return nil, err
 	}
 
-	return &model.Video{
+	return &model.VideoPayload{
 		ID:                uploadedVideo.ID,
 		VideoURL:          uploadedVideo.VideoURL,
 		ThumbnailImageURL: uploadedVideo.ThumbnailImageURL,
@@ -42,7 +42,21 @@ func (r *videoResolver) Uploader(ctx context.Context, obj *model.Video) (*model.
 	return &model.User{}, nil
 }
 
+// ID is the resolver for the id field.
+func (r *videoPayloadResolver) ID(ctx context.Context, obj *model.VideoPayload) (string, error) {
+	return obj.ID, nil
+}
+
+// Uploader is the resolver for the uploader field.
+func (r *videoPayloadResolver) Uploader(ctx context.Context, obj *model.VideoPayload) (*model.User, error) {
+	return &model.User{}, nil
+}
+
 // Video returns generated.VideoResolver implementation.
 func (r *Resolver) Video() generated.VideoResolver { return &videoResolver{r} }
 
+// VideoPayload returns generated.VideoPayloadResolver implementation.
+func (r *Resolver) VideoPayload() generated.VideoPayloadResolver { return &videoPayloadResolver{r} }
+
 type videoResolver struct{ *Resolver }
+type videoPayloadResolver struct{ *Resolver }

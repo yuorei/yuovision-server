@@ -15,7 +15,7 @@ type NewUser struct {
 	Name string `json:"name"`
 }
 
-type UploadVideo struct {
+type UploadVideoInput struct {
 	Video          graphql.Upload  `json:"video"`
 	ThumbnailImage *graphql.Upload `json:"thumbnailImage,omitempty"`
 	Title          string          `json:"title"`
@@ -48,3 +48,14 @@ type Video struct {
 
 func (Video) IsNode()            {}
 func (this Video) GetID() string { return this.ID }
+
+type VideoPayload struct {
+	ID                string  `json:"id"`
+	VideoURL          string  `json:"videoURL"`
+	Title             string  `json:"title"`
+	ThumbnailImageURL string  `json:"thumbnailImageURL"`
+	Description       *string `json:"description,omitempty"`
+	CreatedAt         string  `json:"createdAt"`
+	UpdatedAt         string  `json:"updatedAt"`
+	Uploader          *User   `json:"uploader"`
+}
