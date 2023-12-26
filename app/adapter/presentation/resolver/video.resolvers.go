@@ -16,7 +16,8 @@ import (
 func (r *mutationResolver) UploadVideo(ctx context.Context, input model.UploadVideoInput) (*model.VideoPayload, error) {
 	videoID := domain.NewVideoID()
 	uploadVideo := domain.NewUploadVideo(videoID, input.Video, input.ThumbnailImage, input.Title, input.Description)
-	uploadedVideo, err := r.adapter.UploadVideo(uploadVideo)
+
+	uploadedVideo, err := r.adapter.UploadVideo(ctx, uploadVideo)
 	if err != nil {
 		return nil, err
 	}

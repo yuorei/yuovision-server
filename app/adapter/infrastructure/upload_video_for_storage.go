@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,7 +10,7 @@ import (
 	"github.com/yuorei/video-server/app/domain"
 )
 
-func (i *Infrastructure) UploadVideoForStorage(video *domain.VideoFile) (*domain.UploadVideoForStorageResponse, error) {
+func (i *Infrastructure) UploadVideoForStorage(ctx context.Context, video *domain.VideoFile) (*domain.UploadVideoForStorageResponse, error) {
 	// TODO ストレージサービスに保存する
 	err := filepath.Walk("output", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
