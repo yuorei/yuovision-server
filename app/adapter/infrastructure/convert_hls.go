@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -11,7 +12,7 @@ import (
 	"github.com/yuorei/video-server/app/domain"
 )
 
-func (i *Infrastructure) ConvertVideoHLS(video *domain.VideoFile) error {
+func (i *Infrastructure) ConvertVideoHLS(ctx context.Context, video *domain.VideoFile) error {
 	tempDir := "temp"
 	os.MkdirAll(tempDir, 0755)
 	tempMp4 := filepath.Join(tempDir, video.ID+".mp4")

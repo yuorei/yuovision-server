@@ -1,20 +1,21 @@
 package application
 
 import (
+	"context"
 	"time"
 
 	"github.com/yuorei/video-server/app/domain"
 )
 
-func (a *Application) UploadVideo(video *domain.UploadVideo) (*domain.UploadVideoResponse, error) {
+func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo) (*domain.UploadVideoResponse, error) {
 	videofile := domain.NewVideoFile(video.ID, video.Video.File)
 
-	err := a.Video.videoRepository.ConvertVideoHLS(videofile)
+	err := a.Video.videoRepository.ConvertVideoHLS(ctx, videofile)
 	if err != nil {
 		return nil, err
 	}
 
-	uploadVideoForStorageResponse, err := a.Video.videoRepository.UploadVideoForStorage(videofile)
+	uploadVideoForStorageResponse, err := a.Video.videoRepository.UploadVideoForStorage(ctx, videofile)
 	if err != nil {
 		return nil, err
 	}

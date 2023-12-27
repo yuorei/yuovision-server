@@ -12,7 +12,18 @@ type Video implements Node{
     uploader: User! @goField(forceResolver: true)
 }
 
-input UploadVideo {
+type VideoPayload {
+    id: ID! @goField(forceResolver: true)
+    videoURL: String!
+    title: String!
+    thumbnailImageURL: String!
+    description: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    uploader: User! @goField(forceResolver: true)
+}
+
+input UploadVideoInput {
     video: Upload!
     thumbnailImage: Upload
     title: String!
@@ -20,5 +31,5 @@ input UploadVideo {
 }
 
 extend type Mutation {
-    UploadVideo(input: UploadVideo!): Video!
+    UploadVideo(input: UploadVideoInput!): VideoPayload!
 }
