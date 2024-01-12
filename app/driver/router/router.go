@@ -9,7 +9,6 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
-	"github.com/yuorei/video-server/directive"
 	"github.com/yuorei/video-server/graph/generated"
 
 	resolver "github.com/yuorei/video-server/app/adapter/presentation/resolver"
@@ -25,13 +24,9 @@ func NewRouter() {
 		port = defaultPort
 	}
 
-	router := mux.NewRouter()
-	router.Use(middleware.AuthMiddleware)
-
 	app := application.NewApplication()
 	r := resolver.NewResolver(app)
 	c := generated.Config{Resolvers: r}
-	c.Directives.Auth = directive.Auth
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
 
@@ -41,6 +36,8 @@ func NewRouter() {
 		AllowedHeaders: []string{"*"},
 	})
 
+	router := mux.NewRouter()
+	router.Use(middleware.Middleware())
 	router.PathPrefix("/graphql").Handler(corsOpts.Handler(srv))
 	router.PathPrefix("/").Handler(playground.Handler("GraphQL playground", "/graphql"))
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
