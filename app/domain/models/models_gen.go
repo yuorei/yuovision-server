@@ -11,10 +11,6 @@ type Node interface {
 	GetID() string
 }
 
-type NewUser struct {
-	Name string `json:"name"`
-}
-
 type UploadVideoInput struct {
 	Video          graphql.Upload  `json:"video"`
 	ThumbnailImage *graphql.Upload `json:"thumbnailImage,omitempty"`
@@ -29,6 +25,10 @@ type User struct {
 
 func (User) IsNode()            {}
 func (this User) GetID() string { return this.ID }
+
+type UserInput struct {
+	Name string `json:"name"`
+}
 
 type UserPayload struct {
 	ID   string `json:"id"`
