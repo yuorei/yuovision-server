@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"log"
-
 	"os"
 	"time"
 
@@ -32,6 +31,7 @@ func NewMongoDB() *DB {
 	if database == nil {
 		log.Fatalf("database is nil")
 	}
+
 	return &DB{
 		Database: database,
 	}
