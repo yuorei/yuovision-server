@@ -2,15 +2,20 @@ package application
 
 import (
 	"context"
-	"time"
 
 	"github.com/yuorei/video-server/app/domain"
+	"github.com/yuorei/video-server/middleware"
 )
 
 func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo) (*domain.UploadVideoResponse, error) {
+	id, err := middleware.GetIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	videofile := domain.NewVideoFile(video.ID, video.Video.File)
 
-	err := a.Video.videoRepository.ConvertVideoHLS(ctx, videofile)
+	err = a.Video.videoRepository.ConvertVideoHLS(ctx, videofile)
 	if err != nil {
 		return nil, err
 	}
@@ -20,14 +25,10 @@ func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo
 		return nil, err
 	}
 
-	return &domain.UploadVideoResponse{
-		ID:                 video.ID,
-		VideoURL:           uploadVideoForStorageResponse.VideoURL,
-		VideoSize:          1000,
-		ThumbnailImageURL:  uploadVideoForStorageResponse.ThumbnailImageURL,
-		ThumbnailImageSize: 1000,
-		Title:              video.Title,
-		Description:        video.Description,
-		CreatedAt:          time.Now(),
-	}, nil
+	videoResponse, err := a.Video.videoRepository.InsertVideo(ctx, video.ID, uploadVideoForStorageResponse.VideoURL, uploadVideoForStorageResponse.ThumbnailImageURL, video.Title, video.Description, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return videoResponse, nil
 }

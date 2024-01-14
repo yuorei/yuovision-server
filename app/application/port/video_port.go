@@ -15,4 +15,5 @@ type VideoInputPort interface {
 type VideoRepository interface {
 	ConvertVideoHLS(context.Context, *domain.VideoFile) error
 	UploadVideoForStorage(context.Context, *domain.VideoFile) (*domain.UploadVideoForStorageResponse, error)
+	InsertVideo(context.Context, string, string, string, string, *string, string) (*domain.UploadVideoResponse, error)
 }
