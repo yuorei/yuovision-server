@@ -12,12 +12,12 @@ type Query {
   users: [User!]!
 }
 
-input NewUser {
+input UserInput {
   name: String!
 }
 
 
 
 type Mutation {
-  createUser(input: NewUser!): UserPayload!
+  registerUser(input: UserInput!): UserPayload!
 }

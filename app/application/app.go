@@ -6,11 +6,14 @@ import (
 
 type Application struct {
 	Video *VideoUseCase
+	User  *UserUseCase
 }
 
 func NewApplication() *Application {
 	videoUseCase := NewVideoUseCase(infrastructure.NewInfrastructure())
+	userUseCase := NewUserUseCase(infrastructure.NewInfrastructure())
 	return &Application{
 		Video: videoUseCase,
+		User:  userUseCase,
 	}
 }

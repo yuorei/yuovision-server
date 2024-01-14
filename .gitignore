@@ -208,3 +208,5 @@ $RECYCLE.BIN/
 docker/minio/
 tmp
 graph/generated
+mongo
+public_key.pem

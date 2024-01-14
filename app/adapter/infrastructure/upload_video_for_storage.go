@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/yuorei/video-server/app/domain"
 )
 
@@ -84,6 +85,7 @@ func uploadForS3(path string) error {
 	if _, ok := buckets[bucketName]; !ok {
 		_, err = client.CreateBucket(ctx, &s3.CreateBucketInput{
 			Bucket: &bucketName,
+			ACL:    types.BucketCannedACLPublicRead,
 		})
 		if err != nil {
 			return err
@@ -97,9 +99,10 @@ func uploadForS3(path string) error {
 	defer file.Close()
 	// put object
 	_, err = client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: &bucketName,
-		Key:    &strings.Split(path, "/")[1],
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(strings.Split(path, "/")[1]),
 		Body:   file,
+		ACL:    types.ObjectCannedACLPublicRead,
 	})
 
 	if err != nil {

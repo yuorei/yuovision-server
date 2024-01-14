@@ -2,7 +2,6 @@ package resolver
 
 //go:generate go run github.com/99designs/gqlgen generate
 import (
-	"github.com/yuorei/video-server/app/adapter"
 	"github.com/yuorei/video-server/app/application"
 )
 
@@ -12,12 +11,12 @@ import (
 
 type Resolver struct {
 	application *application.Application
-	adapter     *adapter.Adapter
+	usecase     *application.UseCase
 }
 
-func NewResolver(application *application.Application) *Resolver {
+func NewResolver(app *application.Application) *Resolver {
 	return &Resolver{
-		application: application,
-		adapter:     adapter.NewAdapter(application),
+		application: app,
+		usecase:     application.NewUseCase(app),
 	}
 }

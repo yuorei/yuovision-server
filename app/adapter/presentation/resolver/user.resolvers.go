@@ -8,13 +8,28 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/yuorei/video-server/app/domain"
 	model "github.com/yuorei/video-server/app/domain/models"
 	"github.com/yuorei/video-server/graph/generated"
 )
 
-// CreateUser is the resolver for the createUser field.
-func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.UserPayload, error) {
-	panic(fmt.Errorf("not implemented: CreateUser - createUser"))
+// RegisterUser is the resolver for the registerUser field.
+func (r *mutationResolver) RegisterUser(ctx context.Context, input model.UserInput) (*model.UserPayload, error) {
+
+	id := ctx.Value("id").(string)
+	name := ctx.Value("name").(string)
+
+	user := domain.NewUser(id, name)
+	fmt.Println(user)
+	user, err := r.usecase.RegisterUser(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.UserPayload{
+		ID:   user.ID,
+		Name: user.Name,
+	}, nil
 }
 
 // Users is the resolver for the users field.

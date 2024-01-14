@@ -17,7 +17,7 @@ func (r *mutationResolver) UploadVideo(ctx context.Context, input model.UploadVi
 	videoID := domain.NewVideoID()
 	uploadVideo := domain.NewUploadVideo(videoID, input.Video, input.ThumbnailImage, input.Title, input.Description)
 
-	uploadedVideo, err := r.adapter.UploadVideo(ctx, uploadVideo)
+	uploadedVideo, err := r.usecase.UploadVideo(ctx, uploadVideo)
 	if err != nil {
 		return nil, err
 	}
