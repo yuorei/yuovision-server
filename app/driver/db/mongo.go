@@ -28,7 +28,7 @@ func NewMongoDB() *DB {
 		log.Fatalf("mongo.Connect: %s", err.Error())
 	}
 
-	database := client.Database("yuorei")
+	database := client.Database("video")
 	if database == nil {
 		log.Fatalf("database is nil")
 	}

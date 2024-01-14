@@ -9,7 +9,7 @@ import (
 )
 
 func (i *Infrastructure) InsertUser(ctx context.Context, user *domain.User) (*domain.User, error) {
-	collection := i.db.Database.Collection("video")
+	collection := i.db.Database.Collection("user")
 	if collection == nil {
 		return nil, fmt.Errorf("collection is nil")
 	}
