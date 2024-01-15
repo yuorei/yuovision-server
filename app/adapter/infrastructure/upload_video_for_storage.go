@@ -44,6 +44,7 @@ func (i *Infrastructure) UploadVideoForStorage(ctx context.Context, video *domai
 		return nil, fmt.Errorf("failed to remove output files: %w", err)
 	}
 
+	// TODO: URLを返すように修正する
 	return &domain.UploadVideoForStorageResponse{}, nil
 }
 
