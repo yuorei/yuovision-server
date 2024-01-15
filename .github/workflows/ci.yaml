@@ -35,4 +35,6 @@ jobs:
           fi
 
       - name: Build
-        run: go build -v main.go
+        run: |
+          make gen
+          go build -v main.go
