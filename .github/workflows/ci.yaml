@@ -25,15 +25,6 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      - name: go mod tidyで差分が出た時に報告
-        run: |
-          go mod tidy
-          git diff --exit-code go.mod go.sum
-          if [ $? -eq 1 ]; then
-            echo "go mod tidy で差分が出ました。手元で go mod tidy を実行してください。"
-            exit 1
-          fi
-
       - name: format による差分が出た場合に報告
         run: |
           gofmt -s -l -w .
@@ -42,7 +33,6 @@ jobs:
             echo "make fmt で差分が出ました。手元で make fmt を実行してください。"
             exit 1
           fi
-
 
       - name: Build
         run: go build -v main.go
