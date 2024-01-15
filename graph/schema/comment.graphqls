@@ -6,7 +6,6 @@ input PostCommentInput {
 type PostCommentPayload {
     id: ID!
     videoID: ID!
-    userID: ID!
     text: String!
     createdAt: DateTime!
     updatedAt: DateTime!

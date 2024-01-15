@@ -19,7 +19,6 @@ type PostCommentInput struct {
 type PostCommentPayload struct {
 	ID        string `json:"id"`
 	VideoID   string `json:"videoID"`
-	UserID    string `json:"userID"`
 	Text      string `json:"text"`
 	CreatedAt string `json:"createdAt"`
 	UpdatedAt string `json:"updatedAt"`

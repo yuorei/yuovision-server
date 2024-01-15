@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/yuorei/video-server/app/domain"
 	model "github.com/yuorei/video-server/app/domain/models"
@@ -29,7 +30,7 @@ func (r *mutationResolver) PostComment(ctx context.Context, input model.PostComm
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println(postComment.User.ID)
 	return &model.PostCommentPayload{
 		ID:        postComment.ID,
 		VideoID:   postComment.VideoID,
