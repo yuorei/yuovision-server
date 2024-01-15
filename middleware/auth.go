@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"os"
@@ -59,4 +60,20 @@ func addIDAndNameToContext(ctx context.Context, id, name string) context.Context
 	ctx = context.WithValue(ctx, "id", id)
 	ctx = context.WithValue(ctx, "name", name)
 	return ctx
+}
+
+func GetIDFromContext(ctx context.Context) (string, error) {
+	id := ctx.Value("id")
+	if id == nil {
+		return "", fmt.Errorf("id is nil")
+	}
+	return id.(string), nil
+}
+
+func GetNameFromContext(ctx context.Context) (string, error) {
+	name := ctx.Value("name")
+	if name == nil {
+		return "", fmt.Errorf("name is nil")
+	}
+	return name.(string), nil
 }
