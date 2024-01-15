@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/yuorei/video-server/app/driver/db/mongo/collection"
+	"github.com/yuorei/video-server/app/driver/db/mongodb/collection"
 )
 
 type (
