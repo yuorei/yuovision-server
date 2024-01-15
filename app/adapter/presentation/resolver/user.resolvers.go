@@ -8,20 +8,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/yuorei/video-server/app/domain"
 	model "github.com/yuorei/video-server/app/domain/models"
 	"github.com/yuorei/video-server/graph/generated"
 )
 
 // RegisterUser is the resolver for the registerUser field.
 func (r *mutationResolver) RegisterUser(ctx context.Context, input model.UserInput) (*model.UserPayload, error) {
-
-	id := ctx.Value("id").(string)
-	name := ctx.Value("name").(string)
-
-	user := domain.NewUser(id, name)
-	fmt.Println(user)
-	user, err := r.usecase.RegisterUser(ctx, user)
+	user, err := r.usecase.RegisterUser(ctx)
 	if err != nil {
 		return nil, err
 	}
