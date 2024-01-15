@@ -1,0 +1,17 @@
+input PostCommentInput {
+    videoID: ID!
+    text: String!
+}
+
+type PostCommentPayload {
+    id: ID!
+    videoID: ID!
+    text: String!
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    user: User
+}
+
+extend type Mutation {
+    PostComment(input: PostCommentInput!): PostCommentPayload!
+}

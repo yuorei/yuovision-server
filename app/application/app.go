@@ -5,15 +5,21 @@ import (
 )
 
 type Application struct {
-	Video *VideoUseCase
-	User  *UserUseCase
+	Video   *VideoUseCase
+	User    *UserUseCase
+	Comment *CommentUseCase
 }
 
 func NewApplication() *Application {
-	videoUseCase := NewVideoUseCase(infrastructure.NewInfrastructure())
-	userUseCase := NewUserUseCase(infrastructure.NewInfrastructure())
+	infra := infrastructure.NewInfrastructure()
+
+	videoUseCase := NewVideoUseCase(infra)
+	userUseCase := NewUserUseCase(infra)
+	CommentUseCase := NewCommentUseCase(infra)
+
 	return &Application{
-		Video: videoUseCase,
-		User:  userUseCase,
+		Video:   videoUseCase,
+		User:    userUseCase,
+		Comment: CommentUseCase,
 	}
 }
