@@ -54,14 +54,7 @@ func uploadForS3(path string) error {
 	secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 
 	cred := credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")
-
-	endpoint := aws.EndpointResolverFunc(func(service, region string) (aws.Endpoint, error) {
-		return aws.Endpoint{
-			URL: "http://localhost:9000",
-		}, nil
-	})
-
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(cred), config.WithEndpointResolver(endpoint))
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithCredentialsProvider(cred))
 	if err != nil {
 		return err
 	}
@@ -69,6 +62,8 @@ func uploadForS3(path string) error {
 	// change object address style
 	client := s3.NewFromConfig(cfg, func(options *s3.Options) {
 		options.UsePathStyle = true
+		options.BaseEndpoint = aws.String(os.Getenv("AWS_S3_ENDPOINT"))
+		options.Region = "ap-northeast-1"
 	})
 
 	// get buckets
