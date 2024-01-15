@@ -11,6 +11,21 @@ type Node interface {
 	GetID() string
 }
 
+type PostCommentInput struct {
+	VideoID string `json:"videoID"`
+	Text    string `json:"text"`
+}
+
+type PostCommentPayload struct {
+	ID        string `json:"id"`
+	VideoID   string `json:"videoID"`
+	UserID    string `json:"userID"`
+	Text      string `json:"text"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+	User      *User  `json:"user,omitempty"`
+}
+
 type UploadVideoInput struct {
 	Video          graphql.Upload  `json:"video"`
 	ThumbnailImage *graphql.Upload `json:"thumbnailImage,omitempty"`
