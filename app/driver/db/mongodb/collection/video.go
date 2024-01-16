@@ -4,7 +4,7 @@ import "time"
 
 type (
 	Video struct {
-		ID                string
+		ID                string `bson:"_id"`
 		VideoURL          string
 		ThumbnailImageURL string
 		Title             string

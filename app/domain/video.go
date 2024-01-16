@@ -10,6 +10,17 @@ import (
 )
 
 type (
+	Video struct {
+		ID                string
+		VideoURL          string
+		ThumbnailImageURL string
+		Title             string
+		Description       *string
+		UploaderID        string
+		CreatedAt         time.Time
+		UpdatedAt         time.Time
+	}
+
 	UploadVideo struct {
 		ID             string
 		Video          graphql.Upload
@@ -40,6 +51,18 @@ type (
 
 func NewVideoID() string {
 	return fmt.Sprintf("%s%s%s", "video", IDSeparator, NewUUID())
+}
+
+func NewVideo(id string, videoURL string, thumbnailImageURL string, title string, description *string, uploaderID string, createdAt time.Time) *Video {
+	return &Video{
+		ID:                id,
+		VideoURL:          videoURL,
+		ThumbnailImageURL: thumbnailImageURL,
+		Title:             title,
+		Description:       description,
+		UploaderID:        uploaderID,
+		CreatedAt:         createdAt,
+	}
 }
 
 func NewUploadVideo(id string, video graphql.Upload, thumbnailImage *graphql.Upload, title string, description *string) *UploadVideo {
