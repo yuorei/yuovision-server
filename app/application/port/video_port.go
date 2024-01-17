@@ -8,6 +8,7 @@ import (
 
 // adaputerがusecase層を呼び出されるメソッドのインターフェースを定義
 type VideoInputPort interface {
+	GetVideo(context.Context, string) (*domain.Video, error)
 	UploadVideo(context.Context, *domain.UploadVideo) (*domain.UploadVideoResponse, error)
 }
 
@@ -15,5 +16,6 @@ type VideoInputPort interface {
 type VideoRepository interface {
 	ConvertVideoHLS(context.Context, *domain.VideoFile) error
 	UploadVideoForStorage(context.Context, *domain.VideoFile) (*domain.UploadVideoForStorageResponse, error)
+	GetVideoFromDB(context.Context, string) (*domain.Video, error)
 	InsertVideo(context.Context, string, string, string, string, *string, string) (*domain.UploadVideoResponse, error)
 }

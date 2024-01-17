@@ -9,9 +9,15 @@ import (
 	"fmt"
 
 	model "github.com/yuorei/video-server/app/domain/models"
+	"github.com/yuorei/video-server/graph/generated"
 )
 
 // Node is the resolver for the node field.
 func (r *queryResolver) Node(ctx context.Context, id string) (model.Node, error) {
 	panic(fmt.Errorf("not implemented: Node - node"))
 }
+
+// Query returns generated.QueryResolver implementation.
+func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
+
+type queryResolver struct{ *Resolver }

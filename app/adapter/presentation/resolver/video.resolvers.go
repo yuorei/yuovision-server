@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/yuorei/video-server/app/domain"
 	model "github.com/yuorei/video-server/app/domain/models"
@@ -33,6 +34,31 @@ func (r *mutationResolver) UploadVideo(ctx context.Context, input model.UploadVi
 	}, nil
 }
 
+// Videos is the resolver for the videos field.
+func (r *queryResolver) Videos(ctx context.Context) ([]*model.Video, error) {
+	panic(fmt.Errorf("not implemented: Videos - videos"))
+}
+
+// Video is the resolver for the video field.
+func (r *queryResolver) Video(ctx context.Context, id string) (*model.Video, error) {
+	video, err := r.usecase.GetVideo(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &model.Video{
+		ID:                video.ID,
+		VideoURL:          video.VideoURL,
+		ThumbnailImageURL: video.ThumbnailImageURL,
+		Title:             video.Title,
+		Description:       video.Description,
+		CreatedAt:         video.CreatedAt.String(),
+		UpdatedAt:         video.CreatedAt.String(),
+		Uploader: &model.User{
+			ID: video.UploaderID,
+		},
+	}, nil
+}
+
 // ID is the resolver for the id field.
 func (r *videoResolver) ID(ctx context.Context, obj *model.Video) (string, error) {
 	return obj.ID, nil
@@ -40,7 +66,10 @@ func (r *videoResolver) ID(ctx context.Context, obj *model.Video) (string, error
 
 // Uploader is the resolver for the uploader field.
 func (r *videoResolver) Uploader(ctx context.Context, obj *model.Video) (*model.User, error) {
-	return &model.User{}, nil
+	return &model.User{
+		ID:   obj.Uploader.ID,
+		Name: obj.Uploader.Name,
+	}, nil
 }
 
 // ID is the resolver for the id field.

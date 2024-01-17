@@ -4,7 +4,7 @@ import "time"
 
 type (
 	Video struct {
-		ID                string
+		ID                string `bson:"_id"`
 		VideoURL          string
 		ThumbnailImageURL string
 		Title             string
@@ -15,3 +15,15 @@ type (
 		UploaderID string
 	}
 )
+
+func NewVideoCollection(id string, videoURL string, thumbnailImageURL string, title string, description *string, uploaderID string) *Video {
+	return &Video{
+		ID:                id,
+		VideoURL:          videoURL,
+		ThumbnailImageURL: thumbnailImageURL,
+		Title:             title,
+		Description:       description,
+		UploaderID:        uploaderID,
+		CreatedAt:         time.Now(),
+	}
+}

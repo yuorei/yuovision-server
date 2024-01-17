@@ -30,6 +30,11 @@ input UploadVideoInput {
     description: String
 }
 
+extend type Query {
+    videos: [Video!]!
+    video(id: ID!): Video!
+}
+
 extend type Mutation {
     UploadVideo(input: UploadVideoInput!): VideoPayload!
 }
