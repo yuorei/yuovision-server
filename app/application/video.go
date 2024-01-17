@@ -23,7 +23,7 @@ func (a *Application) GetVideo(ctx context.Context, videoID string) (*domain.Vid
 }
 
 func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo) (*domain.UploadVideoResponse, error) {
-	id, err := middleware.GetIDFromContext(ctx)
+	id, err := middleware.GetUserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}

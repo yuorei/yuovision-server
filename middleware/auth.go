@@ -62,7 +62,7 @@ func addIDAndNameToContext(ctx context.Context, id, name string) context.Context
 	return ctx
 }
 
-func GetIDFromContext(ctx context.Context) (string, error) {
+func GetUserIDFromContext(ctx context.Context) (string, error) {
 	id := ctx.Value("id")
 	if id == nil {
 		return "", fmt.Errorf("id is nil")
