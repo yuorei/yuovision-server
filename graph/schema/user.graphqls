@@ -8,8 +8,9 @@ type UserPayload {
   name: String!
 }
 
-type Query {
+extend type Query {
   users: [User!]!
+  user(id: ID!): User!
 }
 
 input UserInput {

@@ -18,6 +18,10 @@ func NewUserUseCase(userRepository port.UserRepository) *UserUseCase {
 	}
 }
 
+func (a *Application) GetUser(ctx context.Context, id string) (*domain.User, error) {
+	return a.User.userRepository.GetUserFromDB(ctx, id)
+}
+
 func (a *Application) RegisterUser(ctx context.Context) (*domain.User, error) {
 	id, err := middleware.GetIDFromContext(ctx)
 	if err != nil {
