@@ -32,7 +32,7 @@ func (i *Infrastructure) InsertVideo(ctx context.Context, id string, videoURL st
 		return nil, fmt.Errorf("collection is nil")
 	}
 
-	videoForDB := domain.NewVideoForDB(id, videoURL, thumbnailImageURL, title, description, uploaderID)
+	videoForDB := collection.NewVideoCollection(id, videoURL, thumbnailImageURL, title, description, uploaderID)
 	insertResult, err := mongoCollection.InsertOne(ctx, videoForDB)
 	if err != nil {
 		return nil, err

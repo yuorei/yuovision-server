@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/yuorei/video-server/app/driver/db/mongodb/collection"
 )
 
 type (
@@ -79,17 +78,5 @@ func NewVideoFile(id string, video io.ReadSeeker) *VideoFile {
 	return &VideoFile{
 		ID:    id,
 		Video: video,
-	}
-}
-
-func NewVideoForDB(id string, videoURL string, thumbnailImageURL string, title string, description *string, uploaderID string) *collection.Video {
-	return &collection.Video{
-		ID:                id,
-		VideoURL:          videoURL,
-		ThumbnailImageURL: thumbnailImageURL,
-		Title:             title,
-		Description:       description,
-		UploaderID:        uploaderID,
-		CreatedAt:         time.Now(),
 	}
 }
