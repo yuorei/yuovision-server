@@ -36,6 +36,6 @@ jobs:
 
       - name: Build
         run: |
-          make gen
           apt-get install -y libwebp-dev
+          make gen
           go build -v main.go
