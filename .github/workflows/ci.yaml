@@ -36,5 +36,6 @@ jobs:
 
       - name: Build
         run: |
+          sudo apt-get install -y libwebp-dev
           make gen
           docker build -f Dockerfile .
