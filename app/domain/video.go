@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io"
 	"time"
-
-	"github.com/99designs/gqlgen/graphql"
 )
 
 type (
@@ -21,11 +19,13 @@ type (
 	}
 
 	UploadVideo struct {
-		ID             string
-		Video          graphql.Upload
-		ThumbnailImage *graphql.Upload
-		Title          string
-		Description    *string
+		ID               string
+		Video            io.ReadSeeker
+		VideoContentType string
+		ThumbnailImage   *io.ReadSeeker
+		ImageContentType string
+		Title            string
+		Description      *string
 	}
 
 	UploadVideoResponse struct {
@@ -35,11 +35,6 @@ type (
 		Title             string
 		Description       *string
 		CreatedAt         time.Time
-	}
-
-	UploadVideoForStorageResponse struct {
-		VideoURL          string
-		ThumbnailImageURL string
 	}
 
 	VideoFile struct {
@@ -64,13 +59,15 @@ func NewVideo(id string, videoURL string, thumbnailImageURL string, title string
 	}
 }
 
-func NewUploadVideo(id string, video graphql.Upload, thumbnailImage *graphql.Upload, title string, description *string) *UploadVideo {
+func NewUploadVideo(id string, video io.ReadSeeker, videoContentType string, thumbnailImage *io.ReadSeeker, imageContentType string, title string, description *string) *UploadVideo {
 	return &UploadVideo{
-		ID:             id,
-		Video:          video,
-		ThumbnailImage: thumbnailImage,
-		Title:          title,
-		Description:    description,
+		ID:               id,
+		Video:            video,
+		VideoContentType: videoContentType,
+		ThumbnailImage:   thumbnailImage,
+		ImageContentType: imageContentType,
+		Title:            title,
+		Description:      description,
 	}
 }
 
