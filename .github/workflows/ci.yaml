@@ -36,6 +36,5 @@ jobs:
 
       - name: Build
         run: |
-          apt-get install -y libwebp-dev
           make gen
-          go build -v main.go
+          docker build -f Dockerfile .
