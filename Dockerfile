@@ -13,8 +13,9 @@ RUN go mod download
 ENV AWS_ACCESS_KEY_ID=minioadmin
 ENV AWS_SECRET_ACCESS_KEY=minioadmin
 ENV AWS_S3_ENDPOINT=http://minio:9000
+ENV MONGODB_URI=mongodb://root:example@mongo:27017/
 
-RUN CGO_ENABLED=0 go build -o /app
+RUN  go build -o /app
 
 EXPOSE 8080
 
