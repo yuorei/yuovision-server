@@ -6,6 +6,7 @@ import (
 
 type Application struct {
 	Video   *VideoUseCase
+	Image   *ImageUseCase
 	User    *UserUseCase
 	Comment *CommentUseCase
 }
@@ -14,11 +15,13 @@ func NewApplication() *Application {
 	infra := infrastructure.NewInfrastructure()
 
 	videoUseCase := NewVideoUseCase(infra)
+	imageUseCase := NewImageUseCase(infra)
 	userUseCase := NewUserUseCase(infra)
 	CommentUseCase := NewCommentUseCase(infra)
 
 	return &Application{
 		Video:   videoUseCase,
+		Image:   imageUseCase,
 		User:    userUseCase,
 		Comment: CommentUseCase,
 	}

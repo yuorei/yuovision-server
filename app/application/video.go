@@ -23,24 +23,36 @@ func (a *Application) GetVideo(ctx context.Context, videoID string) (*domain.Vid
 }
 
 func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo) (*domain.UploadVideoResponse, error) {
-	id, err := middleware.GetIDFromContext(ctx)
+	id, err := middleware.GetUserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	videofile := domain.NewVideoFile(video.ID, video.Video.File)
-
+	videofile := domain.NewVideoFile(video.ID, video.Video)
 	err = a.Video.videoRepository.ConvertVideoHLS(ctx, videofile)
 	if err != nil {
 		return nil, err
 	}
 
-	uploadVideoForStorageResponse, err := a.Video.videoRepository.UploadVideoForStorage(ctx, videofile)
+	imageBuffer, err := a.Image.imageRepository.ConvertThumbnailToWebp(ctx, video.ThumbnailImage, video.ImageContentType)
 	if err != nil {
 		return nil, err
 	}
 
-	videoResponse, err := a.Video.videoRepository.InsertVideo(ctx, video.ID, uploadVideoForStorageResponse.VideoURL, uploadVideoForStorageResponse.ThumbnailImageURL, video.Title, video.Description, id)
+	var imageURL string
+	if imageBuffer != nil {
+		imageURL, err = a.Image.imageRepository.UploadImageForStorage(ctx, video.ID, imageBuffer)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	videoURL, err := a.Video.videoRepository.UploadVideoForStorage(ctx, videofile)
+	if err != nil {
+		return nil, err
+	}
+
+	videoResponse, err := a.Video.videoRepository.InsertVideo(ctx, video.ID, videoURL, imageURL, video.Title, video.Description, id)
 	if err != nil {
 		return nil, err
 	}

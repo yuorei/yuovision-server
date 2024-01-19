@@ -23,7 +23,7 @@ func (a *Application) GetUser(ctx context.Context, id string) (*domain.User, err
 }
 
 func (a *Application) RegisterUser(ctx context.Context) (*domain.User, error) {
-	id, err := middleware.GetIDFromContext(ctx)
+	id, err := middleware.GetUserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}

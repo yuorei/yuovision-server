@@ -15,7 +15,7 @@ type VideoInputPort interface {
 // ユースケースからインフラを呼び出されるメソッドのインターフェースを定義
 type VideoRepository interface {
 	ConvertVideoHLS(context.Context, *domain.VideoFile) error
-	UploadVideoForStorage(context.Context, *domain.VideoFile) (*domain.UploadVideoForStorageResponse, error)
+	UploadVideoForStorage(context.Context, *domain.VideoFile) (string, error)
 	GetVideoFromDB(context.Context, string) (*domain.Video, error)
 	InsertVideo(context.Context, string, string, string, string, *string, string) (*domain.UploadVideoResponse, error)
 }

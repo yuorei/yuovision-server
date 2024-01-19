@@ -16,7 +16,7 @@ import (
 	"github.com/yuorei/video-server/app/domain"
 )
 
-func (i *Infrastructure) UploadVideoForStorage(ctx context.Context, video *domain.VideoFile) (*domain.UploadVideoForStorageResponse, error) {
+func (i *Infrastructure) UploadVideoForStorage(ctx context.Context, video *domain.VideoFile) (string, error) {
 	err := filepath.Walk("output", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -32,7 +32,7 @@ func (i *Infrastructure) UploadVideoForStorage(ctx context.Context, video *domai
 				}
 				return nil
 			}()
-			err := uploadForS3(path)
+			err := uploadVideoForS3(path)
 			if err != nil {
 				return err
 			}
@@ -41,14 +41,14 @@ func (i *Infrastructure) UploadVideoForStorage(ctx context.Context, video *domai
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to remove output files: %w", err)
+		return "", fmt.Errorf("failed to remove output files: %w", err)
 	}
 
-	// TODO: URLを返すように修正する
-	return &domain.UploadVideoForStorageResponse{}, nil
+	url := fmt.Sprintf("%s/video-service/output_%s.m3u8", os.Getenv("AWS_S3_ENDPOINT"), video.ID)
+	return url, nil
 }
 
-func uploadForS3(path string) error {
+func uploadVideoForS3(path string) error {
 	ctx := context.Background()
 	accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")

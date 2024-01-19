@@ -7,6 +7,7 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"github.com/yuorei/video-server/app/domain"
 	model "github.com/yuorei/video-server/app/domain/models"
@@ -15,8 +16,16 @@ import (
 
 // UploadVideo is the resolver for the UploadVideo field.
 func (r *mutationResolver) UploadVideo(ctx context.Context, input model.UploadVideoInput) (*model.VideoPayload, error) {
+	var thumbnailImage *io.ReadSeeker
+	var thumbnailImageContentType string
+
+	if input.ThumbnailImage != nil {
+		thumbnailImage = &input.ThumbnailImage.File
+		thumbnailImageContentType = input.ThumbnailImage.ContentType
+	}
+
 	videoID := domain.NewVideoID()
-	uploadVideo := domain.NewUploadVideo(videoID, input.Video, input.ThumbnailImage, input.Title, input.Description)
+	uploadVideo := domain.NewUploadVideo(videoID, input.Video.File, input.Video.ContentType, thumbnailImage, thumbnailImageContentType, input.Title, input.Description)
 
 	uploadedVideo, err := r.usecase.UploadVideo(ctx, uploadVideo)
 	if err != nil {
