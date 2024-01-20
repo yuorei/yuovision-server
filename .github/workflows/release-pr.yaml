@@ -14,7 +14,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check PullRequest Exists
+      - name: Check Release Branch Exists
+        id: check_release_branch
+        run: |
+          EXISTS=$(git ls-remote --heads origin release | wc -l)
+          echo "exists=${EXISTS}" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release Branch
+        if: ${{ steps.check_release_branch.outputs.exists == 0 }}
+        run: |
+          git checkout -b release
+          git push origin release
+
+      - name: Check Pull Request Exists
         id: check_pr
         env:
           HEAD_MESSAGE: ${{ github.event.head_commit.message }}
