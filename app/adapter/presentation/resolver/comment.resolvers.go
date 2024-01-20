@@ -16,7 +16,7 @@ import (
 // PostComment is the resolver for the PostComment field.
 func (r *mutationResolver) PostComment(ctx context.Context, input model.PostCommentInput) (*model.PostCommentPayload, error) {
 	commentID := domain.NewCommentID()
-	userID, err := middleware.GetIDFromContext(ctx)
+	userID, err := middleware.GetUserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}

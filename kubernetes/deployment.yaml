@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: video-server
+  template:
+    metadata:
+      labels:
+        app: video-server
+    spec:
+      containers:
+      - name: video-server
+        image: yuorei/video-server:latest
+        ports:
+        - containerPort: 8080
+        env:
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: video-secret
+                key: aws_access_key
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: video-secret
+                key: aws_secret_access_key
+          - name: PORT
+            value: "8080"
+
