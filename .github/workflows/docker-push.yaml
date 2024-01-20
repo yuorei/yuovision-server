@@ -53,7 +53,7 @@ jobs:
         context: .
         file: Dockerfile
         push: true
-        tags: ${{ secrets.DOCKER_HUB_USERNAME }}/video:${{ github.sha }}
+        tags: ${{ secrets.DOCKER_HUB_USERNAME }}/video-server:${{ github.sha }}
 
     - name: Docker Image Digest
       run: echo ${{ steps.build-and-push.outputs.digest }}
