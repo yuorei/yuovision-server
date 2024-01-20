@@ -211,3 +211,5 @@ graph/generated
 mongo
 public_key.pem
 secret.yaml
+output
+temp
