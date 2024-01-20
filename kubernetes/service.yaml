@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: video-server-service
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 50000
+  selector:
+    app: video-server
