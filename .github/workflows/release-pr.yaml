@@ -23,7 +23,7 @@ jobs:
       - name: Create Release Branch
         if: ${{ steps.check_release_branch.outputs.exists == 0 }}
         run: |
-          git checkout -b release
+          git branch release
           git push origin release
 
       - name: Check Pull Request Exists
