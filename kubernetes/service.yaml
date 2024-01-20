@@ -7,6 +7,6 @@ spec:
   ports:
     - port: 8080
       targetPort: 8080
-      nodePort: 50000
+      nodePort: 30100
   selector:
     app: video-server

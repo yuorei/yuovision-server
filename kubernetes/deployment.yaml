@@ -28,5 +28,6 @@ spec:
               secretKeyRef:
                 name: video-secret
                 key: aws_secret_access_key
-        - name: PORT
-          value: "8080"
+          - name: PORT
+            value: "8080"
+
