@@ -6,7 +6,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/yuorei/video-server/app/domain"
@@ -45,7 +44,28 @@ func (r *mutationResolver) UploadVideo(ctx context.Context, input model.UploadVi
 
 // Videos is the resolver for the videos field.
 func (r *queryResolver) Videos(ctx context.Context) ([]*model.Video, error) {
-	panic(fmt.Errorf("not implemented: Videos - videos"))
+	videos, err := r.usecase.GetVideos(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []*model.Video
+	for _, video := range videos {
+		result = append(result, &model.Video{
+			ID:                video.ID,
+			VideoURL:          video.VideoURL,
+			ThumbnailImageURL: video.ThumbnailImageURL,
+			Title:             video.Title,
+			Description:       video.Description,
+			CreatedAt:         video.CreatedAt.String(),
+			UpdatedAt:         video.CreatedAt.String(),
+			Uploader: &model.User{
+				ID: video.UploaderID,
+			},
+		})
+	}
+
+	return result, nil
 }
 
 // Video is the resolver for the video field.
