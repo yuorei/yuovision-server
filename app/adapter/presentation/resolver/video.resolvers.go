@@ -95,9 +95,13 @@ func (r *videoResolver) ID(ctx context.Context, obj *model.Video) (string, error
 
 // Uploader is the resolver for the uploader field.
 func (r *videoResolver) Uploader(ctx context.Context, obj *model.Video) (*model.User, error) {
+	user, err := r.usecase.GetUser(ctx, obj.Uploader.ID)
+	if err != nil {
+		return nil, err
+	}
 	return &model.User{
 		ID:   obj.Uploader.ID,
-		Name: obj.Uploader.Name,
+		Name: user.Name,
 	}, nil
 }
 
