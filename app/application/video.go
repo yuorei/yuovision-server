@@ -18,6 +18,10 @@ func NewVideoUseCase(videoRepository port.VideoRepository) *VideoUseCase {
 	}
 }
 
+func (a *Application) GetVideos(ctx context.Context) ([]*domain.Video, error) {
+	return a.Video.videoRepository.GetVideosFromDB(ctx)
+}
+
 func (a *Application) GetVideo(ctx context.Context, videoID string) (*domain.Video, error) {
 	return a.Video.videoRepository.GetVideoFromDB(ctx, videoID)
 }
