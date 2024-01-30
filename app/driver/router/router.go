@@ -31,7 +31,7 @@ func NewRouter() {
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
 
 	corsOpts := cors.New(cors.Options{
-		AllowedOrigins: []string{os.Getenv("URL")},
+		AllowedOrigins: []string{os.Getenv("CORS_URL")},
 		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodOptions},
 		AllowedHeaders: []string{"*"},
 	})
