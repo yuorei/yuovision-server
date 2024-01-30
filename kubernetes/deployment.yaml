@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: video-server
-        image: yuorei/video-server:dfc76b6cba25e48c8653000a8cea8a209c83804a
+        image: yuorei/video-server:86ffc35f531eb0083788155cffbaf69a28bdac7c
         ports:
         - containerPort: 8080
         env:
