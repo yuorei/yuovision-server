@@ -32,13 +32,7 @@ func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo
 		return nil, err
 	}
 
-	videofile := domain.NewVideoFile(video.ID, video.Video)
-	err = a.Video.videoRepository.ConvertVideoHLS(ctx, videofile)
-	if err != nil {
-		return nil, err
-	}
-
-	imageBuffer, err := a.Image.imageRepository.ConvertThumbnailToWebp(ctx, video.ThumbnailImage, video.ImageContentType)
+	imageBuffer, err := a.Image.imageRepository.ConvertThumbnailToWebp(ctx, video.ThumbnailImage, video.ImageContentType, video.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +43,12 @@ func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	videofile := domain.NewVideoFile(video.ID, video.Video)
+	err = a.Video.videoRepository.ConvertVideoHLS(ctx, videofile)
+	if err != nil {
+		return nil, err
 	}
 
 	videoURL, err := a.Video.videoRepository.UploadVideoForStorage(ctx, videofile)

@@ -2,14 +2,16 @@ package collection
 
 type (
 	User struct {
-		ID   string `bson:"_id"`
-		Name string
+		ID              string `bson:"_id"`
+		Name            string
+		ProfileImageURL string
 	}
 )
 
-func NewUserCollection(id string, name string) *User {
+func NewUserCollection(id, name, profileImageURL string) *User {
 	return &User{
-		ID:   id,
-		Name: name,
+		ID:              id,
+		Name:            name,
+		ProfileImageURL: profileImageURL,
 	}
 }
