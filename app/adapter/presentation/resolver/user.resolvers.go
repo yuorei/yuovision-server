@@ -20,8 +20,9 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.UserInp
 	}
 
 	return &model.UserPayload{
-		ID:   user.ID,
-		Name: user.Name,
+		ID:              user.ID,
+		Name:            user.Name,
+		ProfileImageURL: user.ProfileImageURL,
 	}, nil
 }
 
@@ -38,8 +39,9 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 	}
 
 	return &model.User{
-		ID:   user.ID,
-		Name: user.Name,
+		ID:              user.ID,
+		Name:            user.Name,
+		ProfileImageURL: user.ProfileImageURL,
 	}, nil
 }
 

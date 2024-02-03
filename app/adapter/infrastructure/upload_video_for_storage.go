@@ -44,7 +44,7 @@ func (i *Infrastructure) UploadVideoForStorage(ctx context.Context, video *domai
 		return "", fmt.Errorf("failed to remove output files: %w", err)
 	}
 
-	url := fmt.Sprintf("%s/video-service/output_%s.m3u8", os.Getenv("AWS_S3_ENDPOINT"), video.ID)
+	url := fmt.Sprintf("%s/video-service/output_%s.m3u8", os.Getenv("AWS_S3_URL"), video.ID)
 	return url, nil
 }
 

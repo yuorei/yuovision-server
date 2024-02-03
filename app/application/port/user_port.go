@@ -13,6 +13,7 @@ type UserInputPort interface {
 }
 
 type UserRepository interface {
+	GetProfileImageURL(context.Context, string) (string, error)
 	GetUserFromDB(context.Context, string) (*domain.User, error)
 	InsertUser(context.Context, *domain.User) (*domain.User, error)
 }

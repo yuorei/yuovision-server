@@ -1,7 +1,6 @@
 package infrastructure
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"image"
@@ -19,7 +18,7 @@ import (
 	"github.com/kolesa-team/go-webp/webp"
 )
 
-func (i *Infrastructure) ConvertThumbnailToWebp(ctx context.Context, imageFile *io.ReadSeeker, contentType string) (*bytes.Buffer, error) {
+func (i *Infrastructure) ConvertThumbnailToWebp(ctx context.Context, imageFile *io.ReadSeeker, contentType, id string) (*os.File, error) {
 	if imageFile == nil {
 		return nil, nil
 	}
@@ -41,6 +40,7 @@ func (i *Infrastructure) ConvertThumbnailToWebp(ctx context.Context, imageFile *
 			return nil, fmt.Errorf("Failed to decode PNG image")
 		}
 		image = img
+
 	case "image/webp":
 		// WEBP画像をデコード
 		img, err := webp.Decode(*imageFile, nil)
@@ -48,21 +48,28 @@ func (i *Infrastructure) ConvertThumbnailToWebp(ctx context.Context, imageFile *
 			return nil, fmt.Errorf("Failed to decode WEBP image")
 		}
 		image = img
+
 	default:
 		return nil, fmt.Errorf("This file is not supported.")
 	}
 
-	// WebPに変換
-	webpBuffer := new(bytes.Buffer)
-	err := webp.Encode(webpBuffer, image, nil)
+	imageTmp, err := os.Create(id + ".webp")
+	if err != nil {
+		return nil, err
+	}
+	defer imageTmp.Close()
+	// WebPにエンコード
+	err = webp.Encode(imageTmp, image, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to encode to WEBP image")
 	}
 
-	return webpBuffer, nil
+	return imageTmp, nil
 }
 
-func (i *Infrastructure) UploadImageForStorage(ctx context.Context, id string, imageBuffer *bytes.Buffer) (string, error) {
+func (i *Infrastructure) UploadImageForStorage(ctx context.Context, id string, imageBuffer *os.File) (string, error) {
+	imagePath := id + ".webp"
+	defer os.Remove(imagePath)
 	accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 
@@ -89,7 +96,7 @@ func (i *Infrastructure) UploadImageForStorage(ctx context.Context, id string, i
 		buckets[*b.Name] = struct{}{}
 	}
 
-	// create 'video-service' bucket if not exist
+	// create 'image' bucket if not exist
 	bucketName := "image"
 	if _, ok := buckets[bucketName]; !ok {
 		_, err = client.CreateBucket(ctx, &s3.CreateBucketInput{
@@ -101,19 +108,24 @@ func (i *Infrastructure) UploadImageForStorage(ctx context.Context, id string, i
 		}
 	}
 
-	// put object
+	image, err := os.Open(imagePath)
+	if err != nil {
+		return "", err
+	}
+	defer image.Close()
+
+	// bytes.bufferがaws-sdk-go-v2では使えない
 	_, err = client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
-		Key:    aws.String(id + ".webp"),
-		Body:   imageBuffer,
+		Key:    aws.String(imagePath),
+		Body:   image,
 		ACL:    types.ObjectCannedACLPublicRead,
 	})
-
 	if err != nil {
 		return "", fmt.Errorf("failed to upload file: %w", err)
 	}
-	log.Println("Successful upload: ", id)
+	log.Println("Successful upload: ", imagePath)
 
-	url := fmt.Sprintf("%s/video-service/%s.webp", os.Getenv("AWS_S3_ENDPOINT"), id)
+	url := fmt.Sprintf("%s/video-service/%s.webp", os.Getenv("AWS_S3_URL"), id)
 	return url, nil
 }
