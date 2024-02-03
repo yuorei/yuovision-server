@@ -34,6 +34,7 @@ type (
 		ThumbnailImageURL string
 		Title             string
 		Description       *string
+		UploaderID        string
 		CreatedAt         time.Time
 	}
 
