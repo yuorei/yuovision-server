@@ -72,6 +72,7 @@ func (i *Infrastructure) InsertVideo(ctx context.Context, id string, videoURL st
 		ThumbnailImageURL: videoForDB.ThumbnailImageURL,
 		Title:             videoForDB.Title,
 		Description:       videoForDB.Description,
+		UploaderID:        videoForDB.UploaderID,
 		CreatedAt:         videoForDB.CreatedAt,
 	}, nil
 }

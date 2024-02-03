@@ -32,7 +32,7 @@ func NewRouter() {
 
 	corsOpts := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
-		Logger:         log.New(os.Stdout, "video-server", log.LstdFlags),
+		// Logger:         log.New(os.Stdout, "video-server", log.LstdFlags),
 		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodOptions},
 		AllowedHeaders: []string{"*"},
 	})

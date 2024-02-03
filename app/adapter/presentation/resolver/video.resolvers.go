@@ -39,6 +39,9 @@ func (r *mutationResolver) UploadVideo(ctx context.Context, input model.UploadVi
 		Description:       uploadedVideo.Description,
 		CreatedAt:         uploadedVideo.CreatedAt.String(),
 		UpdatedAt:         uploadedVideo.CreatedAt.String(),
+		Uploader: &model.User{
+			ID: uploadedVideo.UploaderID,
+		},
 	}, nil
 }
 

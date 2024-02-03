@@ -44,7 +44,8 @@ func (i *Infrastructure) UploadVideoForStorage(ctx context.Context, video *domai
 		return "", fmt.Errorf("failed to remove output files: %w", err)
 	}
 
-	url := fmt.Sprintf("%s/video-service/output_%s.m3u8", os.Getenv("AWS_S3_URL"), video.ID)
+	bucketName := "video"
+	url := fmt.Sprintf("%s/%s/output_%s.m3u8", os.Getenv("AWS_S3_URL"), bucketName, video.ID)
 	return url, nil
 }
 
@@ -76,8 +77,8 @@ func uploadVideoForS3(path string) error {
 		buckets[*b.Name] = struct{}{}
 	}
 
-	// create 'video-service' bucket if not exist
-	bucketName := "video-service"
+	// create 'video' bucket if not exist
+	bucketName := "video"
 	if _, ok := buckets[bucketName]; !ok {
 		_, err = client.CreateBucket(ctx, &s3.CreateBucketInput{
 			Bucket: &bucketName,
