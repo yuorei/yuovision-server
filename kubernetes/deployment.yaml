@@ -40,11 +40,6 @@ spec:
               secretKeyRef:
                 name: video-secret
                 key: aws_s3_url
-          - name: IMAGE_URL
-            valueFrom:
-              secretKeyRef:
-                name: video-secret
-                key: image_url
           - name: MONGODB_URI
             valueFrom:
               secretKeyRef:
