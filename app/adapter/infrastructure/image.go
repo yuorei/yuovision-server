@@ -96,8 +96,8 @@ func (i *Infrastructure) UploadImageForStorage(ctx context.Context, id string, i
 		buckets[*b.Name] = struct{}{}
 	}
 
-	// create 'image' bucket if not exist
-	bucketName := "image"
+	// create 'thumbnail-image' bucket if not exist
+	bucketName := "thumbnail-image"
 	if _, ok := buckets[bucketName]; !ok {
 		_, err = client.CreateBucket(ctx, &s3.CreateBucketInput{
 			Bucket: &bucketName,
@@ -126,6 +126,6 @@ func (i *Infrastructure) UploadImageForStorage(ctx context.Context, id string, i
 	}
 	log.Println("Successful upload: ", imagePath)
 
-	url := fmt.Sprintf("%s/video-service/%s.webp", os.Getenv("AWS_S3_URL"), id)
+	url := fmt.Sprintf("%s/%s/%s.webp", os.Getenv("AWS_S3_URL"), bucketName, id)
 	return url, nil
 }
