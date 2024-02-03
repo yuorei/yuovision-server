@@ -41,6 +41,14 @@ func Middleware() func(next http.Handler) http.Handler {
 			token, err := jwt.Parse(bearerToken, func(token *jwt.Token) (interface{}, error) {
 				return publicKey, nil
 			})
+			if err != nil {
+				if err.Error() == "Token is expired" {
+					next.ServeHTTP(w, r)
+					return // トークンが期限切れの場合は、次のハンドラに進む
+				}
+				http.Error(w, "Token parsing failed error: "+err.Error(), http.StatusUnauthorized)
+				return
+			}
 
 			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 				log.Println(claims["sub"])
