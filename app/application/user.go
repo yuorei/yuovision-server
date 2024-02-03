@@ -32,6 +32,12 @@ func (a *Application) RegisterUser(ctx context.Context) (*domain.User, error) {
 		return nil, err
 	}
 
-	user := domain.NewUser(id, name)
+	// 画像URLを取得
+	profileImageURL, err := a.User.userRepository.GetProfileImageURL(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	user := domain.NewUser(id, name, profileImageURL)
 	return a.User.userRepository.InsertUser(ctx, user)
 }

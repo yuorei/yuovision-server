@@ -100,8 +100,9 @@ func (r *videoResolver) Uploader(ctx context.Context, obj *model.Video) (*model.
 		return nil, err
 	}
 	return &model.User{
-		ID:   obj.Uploader.ID,
-		Name: user.Name,
+		ID:              obj.Uploader.ID,
+		Name:            user.Name,
+		ProfileImageURL: user.ProfileImageURL,
 	}, nil
 }
 
@@ -112,7 +113,15 @@ func (r *videoPayloadResolver) ID(ctx context.Context, obj *model.VideoPayload) 
 
 // Uploader is the resolver for the uploader field.
 func (r *videoPayloadResolver) Uploader(ctx context.Context, obj *model.VideoPayload) (*model.User, error) {
-	return &model.User{}, nil
+	user, err := r.usecase.GetUser(ctx, obj.Uploader.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &model.User{
+		ID:              obj.Uploader.ID,
+		Name:            user.Name,
+		ProfileImageURL: user.ProfileImageURL,
+	}, nil
 }
 
 // Video returns generated.VideoResolver implementation.

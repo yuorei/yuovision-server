@@ -30,31 +30,21 @@ spec:
                 key: aws_secret_access_key
           - name: PORT
             value: "8080"
-          - name: AWS_ENDPOINT_URL
+          - name: AWS_S3_ENDPOINT
             valueFrom:
               secretKeyRef:
                 name: video-secret
                 key: aws_endpoint_url
+          - name: AWS_S3_URL
+            valueFrom:
+              secretKeyRef:
+                name: video-secret
+                key: aws_s3_url
           - name: IMAGE_URL
             valueFrom:
               secretKeyRef:
                 name: video-secret
                 key: image_url
-          - name: CORS_URL
-            valueFrom:
-              secretKeyRef:
-                name: video-secret
-                key: cors_url
-          - name: MONGO_INITDB_ROOT_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: video-secret
-                key: mongo_initdb_root_username
-          - name: MONGO_INITDB_ROOT_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: video-secret
-                key: mongo_initdb_root_password
           - name: MONGODB_URI
             valueFrom:
               secretKeyRef:

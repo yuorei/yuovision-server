@@ -1,11 +1,13 @@
 type User implements Node {
   id: ID! @goField(forceResolver: true)
   name: String!
+  profileImageURL: String!
 }
 
 type UserPayload {
   id: ID!
   name: String!
+  profileImageURL: String!
 }
 
 extend type Query {
