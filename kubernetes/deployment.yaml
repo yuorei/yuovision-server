@@ -45,4 +45,9 @@ spec:
               secretKeyRef:
                 name: video-secret
                 key: mongodb_uri
+          - name: AUTH_URL
+            valueFrom:
+              secretKeyRef:
+                name: video-secret
+                key: auth_url
 
