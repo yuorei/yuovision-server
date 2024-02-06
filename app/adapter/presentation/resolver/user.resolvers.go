@@ -35,7 +35,7 @@ func (r *mutationResolver) SubscribeChannel(ctx context.Context, input *model.Su
 		return nil, err
 	}
 
-	subscribeChannel := domain.NewSubscribeChannel(id,input.ChannelID)
+	subscribeChannel := domain.NewSubscribeChannel(id, input.ChannelID)
 	subscribeChannelResult, err := r.usecase.SubscribeChannel(ctx, subscribeChannel)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (r *mutationResolver) UnSubscribeChannel(ctx context.Context, input *model.
 		return nil, err
 	}
 
-	subscribeChannel := domain.NewSubscribeChannel(id,input.ChannelID)
+	subscribeChannel := domain.NewSubscribeChannel(id, input.ChannelID)
 	subscribeChannelResult, err := r.usecase.UnSubscribeChannel(ctx, subscribeChannel)
 	if err != nil {
 		return nil, err
