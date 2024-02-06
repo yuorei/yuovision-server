@@ -8,8 +8,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/yuorei/video-server/app/domain"
 	model "github.com/yuorei/video-server/app/domain/models"
 	"github.com/yuorei/video-server/graph/generated"
+	"github.com/yuorei/video-server/middleware"
 )
 
 // RegisterUser is the resolver for the registerUser field.
@@ -23,6 +25,42 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.UserInp
 		ID:              user.ID,
 		Name:            user.Name,
 		ProfileImageURL: user.ProfileImageURL,
+	}, nil
+}
+
+// SubscribeChannel is the resolver for the subscribeChannel field.
+func (r *mutationResolver) SubscribeChannel(ctx context.Context, input *model.SubscribeChannelInput) (*model.SubscriptionPayload, error) {
+	id, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	subscribeChannel := domain.NewSubscribeChannel(id,input.ChannelID)
+	subscribeChannelResult, err := r.usecase.SubscribeChannel(ctx, subscribeChannel)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.SubscriptionPayload{
+		IsSuccess: subscribeChannelResult.IsSuccess,
+	}, nil
+}
+
+// UnSubscribeChannel is the resolver for the unSubscribeChannel field.
+func (r *mutationResolver) UnSubscribeChannel(ctx context.Context, input *model.SubscribeChannelInput) (*model.SubscriptionPayload, error) {
+	id, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	subscribeChannel := domain.NewSubscribeChannel(id,input.ChannelID)
+	subscribeChannelResult, err := r.usecase.UnSubscribeChannel(ctx, subscribeChannel)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.SubscriptionPayload{
+		IsSuccess: subscribeChannelResult.IsSuccess,
 	}, nil
 }
 

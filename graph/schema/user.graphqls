@@ -10,17 +10,25 @@ type UserPayload {
   profileImageURL: String!
 }
 
+input UserInput {
+  name: String!
+}
+
+input subscribeChannelInput {
+  channelID: ID!
+}
+
+type SubscriptionPayload {
+  isSuccess: Boolean!
+}
+
 extend type Query {
   users: [User!]!
   user(id: ID!): User!
 }
 
-input UserInput {
-  name: String!
-}
-
-
-
 type Mutation {
   registerUser(input: UserInput!): UserPayload!
+  subscribeChannel(input: subscribeChannelInput): SubscriptionPayload!
+  unSubscribeChannel(input: subscribeChannelInput): SubscriptionPayload!
 }

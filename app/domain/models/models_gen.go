@@ -25,6 +25,10 @@ type PostCommentPayload struct {
 	User      *User  `json:"user,omitempty"`
 }
 
+type SubscriptionPayload struct {
+	IsSuccess bool `json:"isSuccess"`
+}
+
 type UploadVideoInput struct {
 	Video          graphql.Upload  `json:"video"`
 	ThumbnailImage *graphql.Upload `json:"thumbnailImage,omitempty"`
@@ -74,4 +78,8 @@ type VideoPayload struct {
 	CreatedAt         string  `json:"createdAt"`
 	UpdatedAt         string  `json:"updatedAt"`
 	Uploader          *User   `json:"uploader"`
+}
+
+type SubscribeChannelInput struct {
+	ChannelID string `json:"channelID"`
 }
