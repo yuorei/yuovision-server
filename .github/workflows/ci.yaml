@@ -34,11 +34,14 @@ jobs:
             exit 1
           fi
 
+      - name: generate
+        run: |
+          sudo apt-get install -y libwebp-dev
+          make gen
+
       - name: Test
         run: make test
 
       - name: Build
         run: |
-          sudo apt-get install -y libwebp-dev
-          make gen
           docker build -f Dockerfile .
