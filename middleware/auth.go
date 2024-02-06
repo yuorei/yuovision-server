@@ -3,7 +3,6 @@ package middleware
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"os"
 	"strings"
@@ -51,8 +50,6 @@ func Middleware() func(next http.Handler) http.Handler {
 			}
 
 			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-				log.Println(claims["sub"])
-				log.Println(claims["preferred_username"])
 				ctx := addIDAndNameToContext(r.Context(), claims["sub"].(string), claims["preferred_username"].(string))
 				r = r.WithContext(ctx)
 			} else {
