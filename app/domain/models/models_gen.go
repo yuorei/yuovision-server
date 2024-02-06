@@ -37,9 +37,10 @@ type UploadVideoInput struct {
 }
 
 type User struct {
-	ID              string `json:"id"`
-	Name            string `json:"name"`
-	ProfileImageURL string `json:"profileImageURL"`
+	ID                  string   `json:"id"`
+	Name                string   `json:"name"`
+	ProfileImageURL     string   `json:"profileImageURL"`
+	Subscribechannelids []string `json:"subscribechannelids"`
 }
 
 func (User) IsNode()            {}
@@ -50,9 +51,10 @@ type UserInput struct {
 }
 
 type UserPayload struct {
-	ID              string `json:"id"`
-	Name            string `json:"name"`
-	ProfileImageURL string `json:"profileImageURL"`
+	ID                  string   `json:"id"`
+	Name                string   `json:"name"`
+	ProfileImageURL     string   `json:"profileImageURL"`
+	Subscribechannelids []string `json:"subscribechannelids"`
 }
 
 type Video struct {

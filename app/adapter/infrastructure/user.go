@@ -28,7 +28,7 @@ func (i *Infrastructure) GetUserFromDB(ctx context.Context, id string) (*domain.
 		return nil, err
 	}
 
-	user := domain.NewUser(userForDB.ID, userForDB.Name, userForDB.ProfileImageURL)
+	user := domain.NewUser(userForDB.ID, userForDB.Name, userForDB.ProfileImageURL, userForDB.SubscribeChannelIDs)
 	return user, nil
 }
 
@@ -78,7 +78,7 @@ func (i *Infrastructure) AddSubscribeChannelForDB(ctx context.Context, subscribe
 
 	// チャンネル登録していないかを確認している
 	var result bson.M
-	err := mongoCollection.FindOne(ctx, bson.M{"subscribechannelid": subscribeChannel.ChannelID}).Decode(&result)
+	err := mongoCollection.FindOne(ctx, bson.M{"subscribechannelids": subscribeChannel.ChannelID}).Decode(&result)
 	if err != nil {
 		if err != mongo.ErrNoDocuments {
 			return nil, err
@@ -99,7 +99,7 @@ func (i *Infrastructure) AddSubscribeChannelForDB(ctx context.Context, subscribe
 	// チャンネルを登録する
 	filter := bson.M{"_id": subscribeChannel.UserID}
 	update := bson.M{
-		"$addToSet": bson.M{"subscribechannelid": subscribeChannel.ChannelID},
+		"$addToSet": bson.M{"subscribechannelids": subscribeChannel.ChannelID},
 	}
 	options := options.Update().SetUpsert(true)
 
@@ -120,7 +120,7 @@ func (i *Infrastructure) UnSubscribeChannelForDB(ctx context.Context, subscribeC
 
 	// チャンネル登録しているかを確認している
 	var result bson.M
-	err := mongoCollection.FindOne(ctx, bson.M{"subscribechannelid": subscribeChannel.ChannelID}).Decode(&result)
+	err := mongoCollection.FindOne(ctx, bson.M{"subscribechannelids": subscribeChannel.ChannelID}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("ChannelID does not exist")
@@ -139,7 +139,7 @@ func (i *Infrastructure) UnSubscribeChannelForDB(ctx context.Context, subscribeC
 	// チャンネルを解除する
 	filter := bson.M{"_id": subscribeChannel.UserID}
 	update := bson.M{
-		"$pull": bson.M{"subscribechannelid": subscribeChannel.ChannelID},
+		"$pull": bson.M{"subscribechannelids": subscribeChannel.ChannelID},
 	}
 
 	_, err = mongoCollection.UpdateOne(ctx, filter, update)

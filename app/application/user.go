@@ -38,7 +38,7 @@ func (a *Application) RegisterUser(ctx context.Context) (*domain.User, error) {
 		return nil, err
 	}
 
-	user := domain.NewUser(id, name, profileImageURL)
+	user := domain.NewUser(id, name, profileImageURL, []string{})
 	return a.User.userRepository.InsertUser(ctx, user)
 }
 

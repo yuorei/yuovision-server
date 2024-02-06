@@ -2,9 +2,10 @@ package domain
 
 type (
 	User struct {
-		ID              string
-		Name            string
-		ProfileImageURL string
+		ID                  string
+		Name                string
+		ProfileImageURL     string
+		Subscribechannelids []string
 	}
 
 	SubscribeChannel struct {
@@ -18,11 +19,12 @@ type (
 	}
 )
 
-func NewUser(id, name, profileImageURL string) *User {
+func NewUser(id, name, profileImageURL string, subscribechannelids []string) *User {
 	return &User{
-		ID:              id,
-		Name:            name,
-		ProfileImageURL: profileImageURL,
+		ID:                  id,
+		Name:                name,
+		ProfileImageURL:     profileImageURL,
+		Subscribechannelids: subscribechannelids,
 	}
 }
 

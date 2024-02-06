@@ -2,12 +2,14 @@ type User implements Node {
   id: ID! @goField(forceResolver: true)
   name: String!
   profileImageURL: String!
+  subscribechannelids: [ID!]!
 }
 
 type UserPayload {
   id: ID!
   name: String!
   profileImageURL: String!
+  subscribechannelids: [ID!]!
 }
 
 input UserInput {
@@ -25,6 +27,7 @@ type SubscriptionPayload {
 extend type Query {
   users: [User!]!
   user(id: ID!): User!
+  userByAuth: User!
 }
 
 type Mutation {

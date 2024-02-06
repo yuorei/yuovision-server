@@ -25,6 +25,7 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.UserInp
 		ID:              user.ID,
 		Name:            user.Name,
 		ProfileImageURL: user.ProfileImageURL,
+		Subscribechannelids: user.Subscribechannelids,
 	}, nil
 }
 
@@ -77,9 +78,31 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 	}
 
 	return &model.User{
-		ID:              user.ID,
-		Name:            user.Name,
-		ProfileImageURL: user.ProfileImageURL,
+		ID:                  user.ID,
+		Name:                user.Name,
+		ProfileImageURL:     user.ProfileImageURL,
+		Subscribechannelids: user.Subscribechannelids,
+	}, nil
+}
+
+// UserByAuth is the resolver for the userByAuth field.
+func (r *queryResolver) UserByAuth(ctx context.Context) (*model.User, error) {
+	id, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(id)
+	user, err := r.usecase.GetUser(ctx, id)
+	if err != nil || user.ID != id {
+		return nil, err
+	}
+	fmt.Println(user)
+
+	return &model.User{
+		ID:                  user.ID,
+		Name:                user.Name,
+		ProfileImageURL:     user.ProfileImageURL,
+		Subscribechannelids: user.Subscribechannelids,
 	}, nil
 }
 
