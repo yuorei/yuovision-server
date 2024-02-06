@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"sort"
 
 	"github.com/yuorei/video-server/app/application/port"
 	"github.com/yuorei/video-server/app/domain"
@@ -19,7 +20,16 @@ func NewVideoUseCase(videoRepository port.VideoRepository) *VideoUseCase {
 }
 
 func (a *Application) GetVideos(ctx context.Context) ([]*domain.Video, error) {
-	return a.Video.videoRepository.GetVideosFromDB(ctx)
+	videos, err := a.Video.videoRepository.GetVideosFromDB(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(videos, func(i, j int) bool {
+		return videos[j].CreatedAt.Before(videos[i].CreatedAt)
+	})
+
+	return videos, nil
 }
 
 func (a *Application) GetVideo(ctx context.Context, videoID string) (*domain.Video, error) {
