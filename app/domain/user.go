@@ -1,10 +1,22 @@
 package domain
 
-type User struct {
-	ID              string
-	Name            string
-	ProfileImageURL string
-}
+type (
+	User struct {
+		ID              string
+		Name            string
+		ProfileImageURL string
+	}
+
+	SubscribeChannel struct {
+		UserID    string
+		ChannelID string
+		IsSuccess bool
+	}
+
+	ProfileImageURL struct {
+		URL string `json:"url"`
+	}
+)
 
 func NewUser(id, name, profileImageURL string) *User {
 	return &User{
@@ -14,6 +26,10 @@ func NewUser(id, name, profileImageURL string) *User {
 	}
 }
 
-type ProfileImageURL struct {
-	URL string `json:"url"`
+func NewSubscribeChannel(userID, channelID string) *SubscribeChannel {
+	return &SubscribeChannel{
+		UserID:    userID,
+		ChannelID: channelID,
+		IsSuccess: false,
+	}
 }

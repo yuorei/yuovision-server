@@ -41,3 +41,11 @@ func (a *Application) RegisterUser(ctx context.Context) (*domain.User, error) {
 	user := domain.NewUser(id, name, profileImageURL)
 	return a.User.userRepository.InsertUser(ctx, user)
 }
+
+func (a *Application) SubscribeChannel(ctx context.Context, subscribeChannel *domain.SubscribeChannel) (*domain.SubscribeChannel, error) {
+	return a.User.userRepository.AddSubscribeChannelForDB(ctx, subscribeChannel)
+}
+
+func (a *Application) UnSubscribeChannel(ctx context.Context, subscribeChannel *domain.SubscribeChannel) (*domain.SubscribeChannel, error) {
+	return a.User.userRepository.UnSubscribeChannelForDB(ctx, subscribeChannel)
+}
