@@ -11,9 +11,7 @@ type Application struct {
 	Comment *CommentUseCase
 }
 
-func NewApplication() *Application {
-	infra := infrastructure.NewInfrastructure()
-
+func NewApplication(infra *infrastructure.Infrastructure) *Application {
 	videoUseCase := NewVideoUseCase(infra)
 	imageUseCase := NewImageUseCase(infra)
 	userUseCase := NewUserUseCase(infra)
