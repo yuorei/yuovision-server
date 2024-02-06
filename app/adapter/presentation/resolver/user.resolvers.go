@@ -22,9 +22,9 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.UserInp
 	}
 
 	return &model.UserPayload{
-		ID:              user.ID,
-		Name:            user.Name,
-		ProfileImageURL: user.ProfileImageURL,
+		ID:                  user.ID,
+		Name:                user.Name,
+		ProfileImageURL:     user.ProfileImageURL,
 		Subscribechannelids: user.Subscribechannelids,
 	}, nil
 }
@@ -91,12 +91,11 @@ func (r *queryResolver) UserByAuth(ctx context.Context) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(id)
+
 	user, err := r.usecase.GetUser(ctx, id)
 	if err != nil || user.ID != id {
 		return nil, err
 	}
-	fmt.Println(user)
 
 	return &model.User{
 		ID:                  user.ID,
