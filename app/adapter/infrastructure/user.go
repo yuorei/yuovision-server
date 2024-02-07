@@ -78,7 +78,10 @@ func (i *Infrastructure) AddSubscribeChannelForDB(ctx context.Context, subscribe
 
 	// チャンネル登録していないかを確認している
 	var result bson.M
-	err := mongoCollection.FindOne(ctx, bson.M{"subscribechannelids": subscribeChannel.ChannelID}).Decode(&result)
+	err := mongoCollection.FindOne(ctx, bson.M{
+		"subscribechannelids": subscribeChannel.ChannelID,
+		"_id":                 subscribeChannel.UserID,
+	}).Decode(&result)
 	if err != nil {
 		if err != mongo.ErrNoDocuments {
 			return nil, err
@@ -120,7 +123,10 @@ func (i *Infrastructure) UnSubscribeChannelForDB(ctx context.Context, subscribeC
 
 	// チャンネル登録しているかを確認している
 	var result bson.M
-	err := mongoCollection.FindOne(ctx, bson.M{"subscribechannelids": subscribeChannel.ChannelID}).Decode(&result)
+	err := mongoCollection.FindOne(ctx, bson.M{
+		"subscribechannelids": subscribeChannel.ChannelID,
+		"_id":                 subscribeChannel.UserID,
+	}).Decode(&result)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("ChannelID does not exist")
