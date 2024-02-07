@@ -41,6 +41,7 @@ type User struct {
 	Name                string   `json:"name"`
 	ProfileImageURL     string   `json:"profileImageURL"`
 	Subscribechannelids []string `json:"subscribechannelids"`
+	Videos              []*Video `json:"videos"`
 }
 
 func (User) IsNode()            {}

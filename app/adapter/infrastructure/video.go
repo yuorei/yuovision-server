@@ -36,6 +36,32 @@ func (i *Infrastructure) GetVideosFromDB(ctx context.Context) ([]*domain.Video, 
 	return videos, nil
 }
 
+func (i *Infrastructure) GetVideosByUserIDFromDB(ctx context.Context, userID string) ([]*domain.Video, error) {
+	mongoCollection := i.db.Database.Collection("video")
+	if mongoCollection == nil {
+		return nil, fmt.Errorf("collection is nil")
+	}
+
+	cursor, err := mongoCollection.Find(ctx, bson.D{{"uploaderid", userID}})
+	if err != nil {
+		return nil, err
+	}
+
+	var videos []*domain.Video
+	for cursor.Next(ctx) {
+		var videoForDB collection.Video
+		err := cursor.Decode(&videoForDB)
+		if err != nil {
+			return nil, err
+		}
+
+		video := domain.NewVideo(videoForDB.ID, videoForDB.VideoURL, videoForDB.ThumbnailImageURL, videoForDB.Title, videoForDB.Description, videoForDB.UploaderID, videoForDB.CreatedAt)
+		videos = append(videos, video)
+	}
+
+	return videos, nil
+}
+
 func (i *Infrastructure) GetVideoFromDB(ctx context.Context, id string) (*domain.Video, error) {
 	mongoCollection := i.db.Database.Collection("video")
 	if mongoCollection == nil {

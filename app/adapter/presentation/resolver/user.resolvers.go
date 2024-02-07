@@ -110,6 +110,31 @@ func (r *userResolver) ID(ctx context.Context, obj *model.User) (string, error) 
 	return obj.ID, nil
 }
 
+// Videos is the resolver for the Videos field.
+func (r *userResolver) Videos(ctx context.Context, obj *model.User) ([]*model.Video, error) {
+	videos, err := r.usecase.GetVideosByUserID(ctx, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []*model.Video
+	for _, video := range videos {
+		result = append(result, &model.Video{
+			ID:                video.ID,
+			VideoURL:          video.VideoURL,
+			ThumbnailImageURL: video.ThumbnailImageURL,
+			Title:             video.Title,
+			Description:       video.Description,
+			CreatedAt:         video.CreatedAt.String(),
+			UpdatedAt:         video.CreatedAt.String(),
+			Uploader: &model.User{
+				ID: video.UploaderID,
+			},
+		})
+	}
+	return result, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

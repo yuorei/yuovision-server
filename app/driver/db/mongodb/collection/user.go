@@ -11,8 +11,9 @@ type (
 
 func NewUserCollection(id, name, profileImageURL string) *User {
 	return &User{
-		ID:              id,
-		Name:            name,
-		ProfileImageURL: profileImageURL,
+		ID:                  id,
+		Name:                name,
+		ProfileImageURL:     profileImageURL,
+		SubscribeChannelIDs: []string{},
 	}
 }
