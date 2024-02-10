@@ -4,7 +4,7 @@ import "time"
 
 type (
 	Comment struct {
-		ID        string
+		ID        string `bson:"_id"`
 		VideoID   string
 		Text      string
 		CreatedAt time.Time

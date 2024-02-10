@@ -6,11 +6,53 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/yuorei/video-server/app/domain"
 	model "github.com/yuorei/video-server/app/domain/models"
+	"github.com/yuorei/video-server/graph/generated"
 	"github.com/yuorei/video-server/middleware"
 )
+
+// ID is the resolver for the id field.
+func (r *commentResolver) ID(ctx context.Context, obj *model.Comment) (string, error) {
+	return obj.ID, nil
+}
+
+// Video is the resolver for the video field.
+func (r *commentResolver) Video(ctx context.Context, obj *model.Comment) (*model.Video, error) {
+	video, err := r.usecase.GetVideo(ctx, obj.Video.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &model.Video{
+		ID:                video.ID,
+		VideoURL:          video.VideoURL,
+		ThumbnailImageURL: video.ThumbnailImageURL,
+		Title:             video.Title,
+		Description:       video.Description,
+		CreatedAt:         video.CreatedAt.String(),
+		UpdatedAt:         video.CreatedAt.String(),
+		Uploader: &model.User{
+			ID: video.UploaderID,
+		},
+	}, nil
+}
+
+// User is the resolver for the user field.
+func (r *commentResolver) User(ctx context.Context, obj *model.Comment) (*model.User, error) {
+	user, err := r.usecase.GetUser(ctx, obj.User.ID)
+	if err != nil || user.ID != obj.User.ID {
+		return nil, err
+	}
+
+	return &model.User{
+		ID:                  user.ID,
+		Name:                user.Name,
+		ProfileImageURL:     user.ProfileImageURL,
+		Subscribechannelids: user.Subscribechannelids,
+	}, nil
+}
 
 // PostComment is the resolver for the PostComment field.
 func (r *mutationResolver) PostComment(ctx context.Context, input model.PostCommentInput) (*model.PostCommentPayload, error) {
@@ -31,8 +73,10 @@ func (r *mutationResolver) PostComment(ctx context.Context, input model.PostComm
 	}
 
 	return &model.PostCommentPayload{
-		ID:        postComment.ID,
-		VideoID:   postComment.VideoID,
+		ID: postComment.ID,
+		Video: &model.Video{
+			ID: postComment.VideoID,
+		},
 		Text:      postComment.Text,
 		CreatedAt: postComment.CreatedAt.String(),
 		UpdatedAt: postComment.UpdatedAt.String(),
@@ -42,3 +86,79 @@ func (r *mutationResolver) PostComment(ctx context.Context, input model.PostComm
 		},
 	}, nil
 }
+
+// Video is the resolver for the video field.
+func (r *postCommentPayloadResolver) Video(ctx context.Context, obj *model.PostCommentPayload) (*model.Video, error) {
+	video, err := r.usecase.GetVideo(ctx, obj.Video.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &model.Video{
+		ID:                video.ID,
+		VideoURL:          video.VideoURL,
+		ThumbnailImageURL: video.ThumbnailImageURL,
+		Title:             video.Title,
+		Description:       video.Description,
+		CreatedAt:         video.CreatedAt.String(),
+		UpdatedAt:         video.CreatedAt.String(),
+		Uploader: &model.User{
+			ID: video.UploaderID,
+		},
+	}, nil
+}
+
+// User is the resolver for the user field.
+func (r *postCommentPayloadResolver) User(ctx context.Context, obj *model.PostCommentPayload) (*model.User, error) {
+	user, err := r.usecase.GetUser(ctx, obj.User.ID)
+	if err != nil || user.ID != obj.User.ID {
+		return nil, err
+	}
+
+	return &model.User{
+		ID:                  user.ID,
+		Name:                user.Name,
+		ProfileImageURL:     user.ProfileImageURL,
+		Subscribechannelids: user.Subscribechannelids,
+	}, nil
+}
+
+// CommentsByVideo is the resolver for the commentsByVideo field.
+func (r *queryResolver) CommentsByVideo(ctx context.Context, videoID string) ([]*model.Comment, error) {
+	comments, err := r.usecase.GetCommentsByVideoID(ctx, videoID)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []*model.Comment
+	for _, comment := range comments {
+		result = append(result, &model.Comment{
+			ID:        comment.ID,
+			Video:     &model.Video{ID: comment.VideoID},
+			Text:      comment.Text,
+			CreatedAt: comment.CreatedAt.String(),
+			UpdatedAt: comment.UpdatedAt.String(),
+			User: &model.User{
+				ID:   comment.User.ID,
+				Name: comment.User.Name,
+			},
+		})
+	}
+
+	return result, nil
+}
+
+// Comment is the resolver for the comment field.
+func (r *queryResolver) Comment(ctx context.Context, id string) (*model.Comment, error) {
+	panic(fmt.Errorf("not implemented: Comment - comment"))
+}
+
+// Comment returns generated.CommentResolver implementation.
+func (r *Resolver) Comment() generated.CommentResolver { return &commentResolver{r} }
+
+// PostCommentPayload returns generated.PostCommentPayloadResolver implementation.
+func (r *Resolver) PostCommentPayload() generated.PostCommentPayloadResolver {
+	return &postCommentPayloadResolver{r}
+}
+
+type commentResolver struct{ *Resolver }
+type postCommentPayloadResolver struct{ *Resolver }
