@@ -32,6 +32,19 @@ func (a *Application) GetVideos(ctx context.Context) ([]*domain.Video, error) {
 	return videos, nil
 }
 
+func (a *Application) GetVideosByUserID(ctx context.Context, userID string) ([]*domain.Video, error) {
+	videos, err := a.Video.videoRepository.GetVideosByUserIDFromDB(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(videos, func(i, j int) bool {
+		return videos[j].CreatedAt.Before(videos[i].CreatedAt)
+	})
+
+	return videos, nil
+}
+
 func (a *Application) GetVideo(ctx context.Context, videoID string) (*domain.Video, error) {
 	return a.Video.videoRepository.GetVideoFromDB(ctx, videoID)
 }

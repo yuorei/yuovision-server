@@ -17,6 +17,10 @@ func NewCommentUseCase(commentRepository port.CommentRepository) *CommentUseCase
 	}
 }
 
+func (a *Application) GetCommentsByVideoID(ctx context.Context, videoID string) ([]*domain.Comment, error) {
+	return a.Comment.commentRepository.GetCommentsByVideoIDFromDB(ctx, videoID)
+}
+
 func (a *Application) PostComment(ctx context.Context, postComment *domain.Comment) (*domain.Comment, error) {
 	return a.Comment.commentRepository.InsertComment(ctx, postComment)
 }
