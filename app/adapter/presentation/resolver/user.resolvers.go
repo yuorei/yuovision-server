@@ -8,8 +8,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/yuorei/video-server/app/domain"
 	model "github.com/yuorei/video-server/app/domain/models"
 	"github.com/yuorei/video-server/graph/generated"
+	"github.com/yuorei/video-server/middleware"
 )
 
 // RegisterUser is the resolver for the registerUser field.
@@ -20,9 +22,46 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.UserInp
 	}
 
 	return &model.UserPayload{
-		ID:              user.ID,
-		Name:            user.Name,
-		ProfileImageURL: user.ProfileImageURL,
+		ID:                  user.ID,
+		Name:                user.Name,
+		ProfileImageURL:     user.ProfileImageURL,
+		Subscribechannelids: user.Subscribechannelids,
+	}, nil
+}
+
+// SubscribeChannel is the resolver for the subscribeChannel field.
+func (r *mutationResolver) SubscribeChannel(ctx context.Context, input *model.SubscribeChannelInput) (*model.SubscriptionPayload, error) {
+	id, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	subscribeChannel := domain.NewSubscribeChannel(id, input.ChannelID)
+	subscribeChannelResult, err := r.usecase.SubscribeChannel(ctx, subscribeChannel)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.SubscriptionPayload{
+		IsSuccess: subscribeChannelResult.IsSuccess,
+	}, nil
+}
+
+// UnSubscribeChannel is the resolver for the unSubscribeChannel field.
+func (r *mutationResolver) UnSubscribeChannel(ctx context.Context, input *model.SubscribeChannelInput) (*model.SubscriptionPayload, error) {
+	id, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	subscribeChannel := domain.NewSubscribeChannel(id, input.ChannelID)
+	subscribeChannelResult, err := r.usecase.UnSubscribeChannel(ctx, subscribeChannel)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.SubscriptionPayload{
+		IsSuccess: subscribeChannelResult.IsSuccess,
 	}, nil
 }
 
@@ -39,15 +78,61 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 	}
 
 	return &model.User{
-		ID:              user.ID,
-		Name:            user.Name,
-		ProfileImageURL: user.ProfileImageURL,
+		ID:                  user.ID,
+		Name:                user.Name,
+		ProfileImageURL:     user.ProfileImageURL,
+		Subscribechannelids: user.Subscribechannelids,
+	}, nil
+}
+
+// UserByAuth is the resolver for the userByAuth field.
+func (r *queryResolver) UserByAuth(ctx context.Context) (*model.User, error) {
+	id, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := r.usecase.GetUser(ctx, id)
+	if err != nil || user.ID != id {
+		return nil, err
+	}
+
+	return &model.User{
+		ID:                  user.ID,
+		Name:                user.Name,
+		ProfileImageURL:     user.ProfileImageURL,
+		Subscribechannelids: user.Subscribechannelids,
 	}, nil
 }
 
 // ID is the resolver for the id field.
 func (r *userResolver) ID(ctx context.Context, obj *model.User) (string, error) {
 	return obj.ID, nil
+}
+
+// Videos is the resolver for the Videos field.
+func (r *userResolver) Videos(ctx context.Context, obj *model.User) ([]*model.Video, error) {
+	videos, err := r.usecase.GetVideosByUserID(ctx, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []*model.Video
+	for _, video := range videos {
+		result = append(result, &model.Video{
+			ID:                video.ID,
+			VideoURL:          video.VideoURL,
+			ThumbnailImageURL: video.ThumbnailImageURL,
+			Title:             video.Title,
+			Description:       video.Description,
+			CreatedAt:         video.CreatedAt.String(),
+			UpdatedAt:         video.CreatedAt.String(),
+			Uploader: &model.User{
+				ID: video.UploaderID,
+			},
+		})
+	}
+	return result, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

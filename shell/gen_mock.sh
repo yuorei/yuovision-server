@@ -1,0 +1,1 @@
+mockgen -source=./app/application/port/video_port.go -destination=./mock/video_port.go

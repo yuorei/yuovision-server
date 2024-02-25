@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"sort"
 
 	"github.com/yuorei/video-server/app/application/port"
 	"github.com/yuorei/video-server/app/domain"
@@ -19,7 +20,29 @@ func NewVideoUseCase(videoRepository port.VideoRepository) *VideoUseCase {
 }
 
 func (a *Application) GetVideos(ctx context.Context) ([]*domain.Video, error) {
-	return a.Video.videoRepository.GetVideosFromDB(ctx)
+	videos, err := a.Video.videoRepository.GetVideosFromDB(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(videos, func(i, j int) bool {
+		return videos[j].CreatedAt.Before(videos[i].CreatedAt)
+	})
+
+	return videos, nil
+}
+
+func (a *Application) GetVideosByUserID(ctx context.Context, userID string) ([]*domain.Video, error) {
+	videos, err := a.Video.videoRepository.GetVideosByUserIDFromDB(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(videos, func(i, j int) bool {
+		return videos[j].CreatedAt.Before(videos[i].CreatedAt)
+	})
+
+	return videos, nil
 }
 
 func (a *Application) GetVideo(ctx context.Context, videoID string) (*domain.Video, error) {
@@ -32,19 +55,6 @@ func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo
 		return nil, err
 	}
 
-	imageBuffer, err := a.Image.imageRepository.ConvertThumbnailToWebp(ctx, video.ThumbnailImage, video.ImageContentType, video.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	var imageURL string
-	if imageBuffer != nil {
-		imageURL, err = a.Image.imageRepository.UploadImageForStorage(ctx, video.ID, imageBuffer)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	videofile := domain.NewVideoFile(video.ID, video.Video)
 	err = a.Video.videoRepository.ConvertVideoHLS(ctx, videofile)
 	if err != nil {
@@ -52,6 +62,24 @@ func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo
 	}
 
 	videoURL, err := a.Video.videoRepository.UploadVideoForStorage(ctx, videofile)
+	if err != nil {
+		return nil, err
+	}
+
+	imageBuffer, err := a.Image.imageRepository.ConvertThumbnailToWebp(ctx, video.ThumbnailImage, video.ImageContentType, video.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	var imageURL string
+	if imageBuffer == nil {
+		err = a.Image.imageRepository.CreateThumbnail(ctx, video.ID, video.Video)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	imageURL, err = a.Image.imageRepository.UploadImageForStorage(ctx, video.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -11,6 +11,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/yuorei/video-server/graph/generated"
 
+	"github.com/yuorei/video-server/app/adapter/infrastructure"
 	resolver "github.com/yuorei/video-server/app/adapter/presentation/resolver"
 	"github.com/yuorei/video-server/app/application"
 	"github.com/yuorei/video-server/middleware"
@@ -24,7 +25,8 @@ func NewRouter() {
 		port = defaultPort
 	}
 
-	app := application.NewApplication()
+	infra := infrastructure.NewInfrastructure()
+	app := application.NewApplication(infra)
 	r := resolver.NewResolver(app)
 	c := generated.Config{Resolvers: r}
 

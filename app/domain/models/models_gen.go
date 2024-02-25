@@ -11,6 +11,18 @@ type Node interface {
 	GetID() string
 }
 
+type Comment struct {
+	ID        string `json:"id"`
+	Video     *Video `json:"video"`
+	Text      string `json:"text"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+	User      *User  `json:"user"`
+}
+
+func (Comment) IsNode()            {}
+func (this Comment) GetID() string { return this.ID }
+
 type PostCommentInput struct {
 	VideoID string `json:"videoID"`
 	Text    string `json:"text"`
@@ -18,11 +30,15 @@ type PostCommentInput struct {
 
 type PostCommentPayload struct {
 	ID        string `json:"id"`
-	VideoID   string `json:"videoID"`
+	Video     *Video `json:"video"`
 	Text      string `json:"text"`
 	CreatedAt string `json:"createdAt"`
 	UpdatedAt string `json:"updatedAt"`
-	User      *User  `json:"user,omitempty"`
+	User      *User  `json:"user"`
+}
+
+type SubscriptionPayload struct {
+	IsSuccess bool `json:"isSuccess"`
 }
 
 type UploadVideoInput struct {
@@ -33,9 +49,11 @@ type UploadVideoInput struct {
 }
 
 type User struct {
-	ID              string `json:"id"`
-	Name            string `json:"name"`
-	ProfileImageURL string `json:"profileImageURL"`
+	ID                  string   `json:"id"`
+	Name                string   `json:"name"`
+	ProfileImageURL     string   `json:"profileImageURL"`
+	Subscribechannelids []string `json:"subscribechannelids"`
+	Videos              []*Video `json:"videos"`
 }
 
 func (User) IsNode()            {}
@@ -46,9 +64,10 @@ type UserInput struct {
 }
 
 type UserPayload struct {
-	ID              string `json:"id"`
-	Name            string `json:"name"`
-	ProfileImageURL string `json:"profileImageURL"`
+	ID                  string   `json:"id"`
+	Name                string   `json:"name"`
+	ProfileImageURL     string   `json:"profileImageURL"`
+	Subscribechannelids []string `json:"subscribechannelids"`
 }
 
 type Video struct {
@@ -74,4 +93,8 @@ type VideoPayload struct {
 	CreatedAt         string  `json:"createdAt"`
 	UpdatedAt         string  `json:"updatedAt"`
 	Uploader          *User   `json:"uploader"`
+}
+
+type SubscribeChannelInput struct {
+	ChannelID string `json:"channelID"`
 }

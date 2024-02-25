@@ -103,9 +103,10 @@ func (r *videoResolver) Uploader(ctx context.Context, obj *model.Video) (*model.
 		return nil, err
 	}
 	return &model.User{
-		ID:              obj.Uploader.ID,
-		Name:            user.Name,
-		ProfileImageURL: user.ProfileImageURL,
+		ID:                  obj.Uploader.ID,
+		Name:                user.Name,
+		ProfileImageURL:     user.ProfileImageURL,
+		Subscribechannelids: user.Subscribechannelids,
 	}, nil
 }
 
@@ -121,9 +122,10 @@ func (r *videoPayloadResolver) Uploader(ctx context.Context, obj *model.VideoPay
 		return nil, err
 	}
 	return &model.User{
-		ID:              obj.Uploader.ID,
-		Name:            user.Name,
-		ProfileImageURL: user.ProfileImageURL,
+		ID:                  obj.Uploader.ID,
+		Name:                user.Name,
+		ProfileImageURL:     user.ProfileImageURL,
+		Subscribechannelids: user.Subscribechannelids,
 	}, nil
 }
 

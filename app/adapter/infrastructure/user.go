@@ -12,6 +12,8 @@ import (
 	"github.com/yuorei/video-server/app/domain"
 	"github.com/yuorei/video-server/app/driver/db/mongodb/collection"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (i *Infrastructure) GetUserFromDB(ctx context.Context, id string) (*domain.User, error) {
@@ -26,7 +28,7 @@ func (i *Infrastructure) GetUserFromDB(ctx context.Context, id string) (*domain.
 		return nil, err
 	}
 
-	user := domain.NewUser(userForDB.ID, userForDB.Name, userForDB.ProfileImageURL)
+	user := domain.NewUser(userForDB.ID, userForDB.Name, userForDB.ProfileImageURL, userForDB.SubscribeChannelIDs)
 	return user, nil
 }
 
@@ -66,4 +68,91 @@ func (i *Infrastructure) GetProfileImageURL(ctx context.Context, id string) (str
 	}
 
 	return profileImageURL.URL, nil
+}
+
+func (i *Infrastructure) AddSubscribeChannelForDB(ctx context.Context, subscribeChannel *domain.SubscribeChannel) (*domain.SubscribeChannel, error) {
+	mongoCollection := i.db.Database.Collection("user")
+	if mongoCollection == nil {
+		return nil, fmt.Errorf("collection is nil")
+	}
+
+	// チャンネル登録していないかを確認している
+	var result bson.M
+	err := mongoCollection.FindOne(ctx, bson.M{
+		"subscribechannelids": subscribeChannel.ChannelID,
+		"_id":                 subscribeChannel.UserID,
+	}).Decode(&result)
+	if err != nil {
+		if err != mongo.ErrNoDocuments {
+			return nil, err
+		}
+	} else {
+		return nil, fmt.Errorf("already subscribed")
+	}
+
+	//チャンネルが存在するかを確認する
+	err = mongoCollection.FindOne(ctx, bson.M{"_id": subscribeChannel.ChannelID}).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("Channel does not exist")
+		}
+		return nil, fmt.Errorf("error while checking ChannelID existence: %v", err)
+	}
+
+	// チャンネルを登録する
+	filter := bson.M{"_id": subscribeChannel.UserID}
+	update := bson.M{
+		"$addToSet": bson.M{"subscribechannelids": subscribeChannel.ChannelID},
+	}
+	options := options.Update().SetUpsert(true)
+
+	_, err = mongoCollection.UpdateOne(ctx, filter, update, options)
+	if err != nil {
+		return nil, fmt.Errorf("error while updating user: %v", err)
+	}
+	subscribeChannel.IsSuccess = true
+
+	return subscribeChannel, nil
+}
+
+func (i *Infrastructure) UnSubscribeChannelForDB(ctx context.Context, subscribeChannel *domain.SubscribeChannel) (*domain.SubscribeChannel, error) {
+	mongoCollection := i.db.Database.Collection("user")
+	if mongoCollection == nil {
+		return nil, fmt.Errorf("collection is nil")
+	}
+
+	// チャンネル登録しているかを確認している
+	var result bson.M
+	err := mongoCollection.FindOne(ctx, bson.M{
+		"subscribechannelids": subscribeChannel.ChannelID,
+		"_id":                 subscribeChannel.UserID,
+	}).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("ChannelID does not exist")
+		}
+		return nil, err
+	}
+	//チャンネルが存在するかを確認する
+	err = mongoCollection.FindOne(ctx, bson.M{"_id": subscribeChannel.ChannelID}).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("Channel does not exist")
+		}
+		return nil, fmt.Errorf("error while checking ChannelID existence: %v", err)
+	}
+
+	// チャンネルを解除する
+	filter := bson.M{"_id": subscribeChannel.UserID}
+	update := bson.M{
+		"$pull": bson.M{"subscribechannelids": subscribeChannel.ChannelID},
+	}
+
+	_, err = mongoCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return nil, fmt.Errorf("error while updating user: %v", err)
+	}
+	subscribeChannel.IsSuccess = true
+
+	return subscribeChannel, nil
 }

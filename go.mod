@@ -9,9 +9,12 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.16.13
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.48.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang/mock v1.6.0
+	github.com/google/go-cmp v0.5.8
 	github.com/google/uuid v1.5.0
 	github.com/gorilla/mux v1.8.1
 	github.com/kolesa-team/go-webp v1.0.4
+	github.com/redis/go-redis/v9 v9.5.1
 	github.com/rs/cors v1.10.1
 	github.com/vektah/gqlparser/v2 v2.5.10
 	go.mongodb.org/mongo-driver v1.13.1
@@ -33,7 +36,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.21.5 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.26.6 // indirect
 	github.com/aws/smithy-go v1.19.0 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.3 // indirect

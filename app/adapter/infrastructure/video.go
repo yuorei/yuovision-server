@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/yuorei/video-server/app/domain"
 	"github.com/yuorei/video-server/app/driver/db/mongodb/collection"
@@ -11,12 +12,52 @@ import (
 )
 
 func (i *Infrastructure) GetVideosFromDB(ctx context.Context) ([]*domain.Video, error) {
+	var videos []*domain.Video
+	key := fmt.Sprintf("%T", videos)
+	hit, err := getFromRedis(ctx, i.redis, key, &videos)
+	if err != nil {
+		return nil, err
+	}
+	if hit {
+		return videos, nil
+	}
+
 	mongoCollection := i.db.Database.Collection("video")
 	if mongoCollection == nil {
 		return nil, fmt.Errorf("collection is nil")
 	}
 
 	cursor, err := mongoCollection.Find(ctx, bson.D{})
+	if err != nil {
+		return nil, err
+	}
+
+	for cursor.Next(ctx) {
+		var videoForDB collection.Video
+		err := cursor.Decode(&videoForDB)
+		if err != nil {
+			return nil, err
+		}
+
+		video := domain.NewVideo(videoForDB.ID, videoForDB.VideoURL, videoForDB.ThumbnailImageURL, videoForDB.Title, videoForDB.Description, videoForDB.UploaderID, videoForDB.CreatedAt)
+		videos = append(videos, video)
+	}
+
+	err = setToRedis(ctx, i.redis, key, 1*time.Minute, videos)
+	if err != nil {
+		return nil, err
+	}
+
+	return videos, nil
+}
+
+func (i *Infrastructure) GetVideosByUserIDFromDB(ctx context.Context, userID string) ([]*domain.Video, error) {
+	mongoCollection := i.db.Database.Collection("video")
+	if mongoCollection == nil {
+		return nil, fmt.Errorf("collection is nil")
+	}
+
+	cursor, err := mongoCollection.Find(ctx, bson.D{{"uploaderid", userID}})
 	if err != nil {
 		return nil, err
 	}
