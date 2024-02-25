@@ -44,8 +44,5 @@ func (i *Infrastructure) ConvertVideoHLS(ctx context.Context, video *domain.Vide
 		return fmt.Errorf("failed to execute ffmpeg command: %w", err)
 	}
 
-	// 一時ファイルの削除
-	os.Remove(tempMp4)
-
 	return nil
 }

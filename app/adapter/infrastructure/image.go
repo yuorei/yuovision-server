@@ -9,6 +9,8 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
+	"path/filepath"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -67,7 +69,7 @@ func (i *Infrastructure) ConvertThumbnailToWebp(ctx context.Context, imageFile *
 	return imageTmp, nil
 }
 
-func (i *Infrastructure) UploadImageForStorage(ctx context.Context, id string, imageBuffer *os.File) (string, error) {
+func (i *Infrastructure) UploadImageForStorage(ctx context.Context, id string) (string, error) {
 	imagePath := id + ".webp"
 	defer os.Remove(imagePath)
 	accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
@@ -128,4 +130,21 @@ func (i *Infrastructure) UploadImageForStorage(ctx context.Context, id string, i
 
 	url := fmt.Sprintf("%s/%s/%s.webp", os.Getenv("AWS_S3_URL"), bucketName, id)
 	return url, nil
+}
+
+func (i *Infrastructure) CreateThumbnail(ctx context.Context, id string, video io.ReadSeeker) error {
+	tempDir := "temp"
+	tempMp4 := filepath.Join(tempDir, id+".mp4")
+
+	imagePath := id + ".webp"
+	cmd := exec.Command("ffmpeg", "-i", tempMp4, "-ss", "00:00:00", "-vframes", "1", imagePath)
+	log.Println(cmd.Args)
+	result, err := cmd.CombinedOutput()
+	log.Println(string(result))
+	if err != nil {
+		return fmt.Errorf("failed to execute ffmpeg command: %w", err)
+	}
+
+	os.Remove(tempMp4)
+	return nil
 }
