@@ -32,6 +32,11 @@ func NewMongoDB() *DB {
 		log.Fatalf("database is nil")
 	}
 
+	err = client.Ping(ctx, nil)
+	if err != nil {
+		log.Fatalf("client.Ping: %s", err.Error())
+	}
+
 	return &DB{
 		Database: database,
 	}
