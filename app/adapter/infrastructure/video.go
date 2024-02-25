@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/yuorei/video-server/app/domain"
 	"github.com/yuorei/video-server/app/driver/db/mongodb/collection"
@@ -11,6 +12,16 @@ import (
 )
 
 func (i *Infrastructure) GetVideosFromDB(ctx context.Context) ([]*domain.Video, error) {
+	var videos []*domain.Video
+	key := fmt.Sprintf("%T", videos)
+	hit, err := getFromRedis(ctx, i.redis, key, &videos)
+	if err != nil {
+		return nil, err
+	}
+	if hit {
+		return videos, nil
+	}
+
 	mongoCollection := i.db.Database.Collection("video")
 	if mongoCollection == nil {
 		return nil, fmt.Errorf("collection is nil")
@@ -21,7 +32,6 @@ func (i *Infrastructure) GetVideosFromDB(ctx context.Context) ([]*domain.Video, 
 		return nil, err
 	}
 
-	var videos []*domain.Video
 	for cursor.Next(ctx) {
 		var videoForDB collection.Video
 		err := cursor.Decode(&videoForDB)
@@ -31,6 +41,11 @@ func (i *Infrastructure) GetVideosFromDB(ctx context.Context) ([]*domain.Video, 
 
 		video := domain.NewVideo(videoForDB.ID, videoForDB.VideoURL, videoForDB.ThumbnailImageURL, videoForDB.Title, videoForDB.Description, videoForDB.UploaderID, videoForDB.CreatedAt)
 		videos = append(videos, video)
+	}
+
+	err = setToRedis(ctx, i.redis, key, 1*time.Minute, videos)
+	if err != nil {
+		return nil, err
 	}
 
 	return videos, nil
