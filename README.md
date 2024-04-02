@@ -62,9 +62,11 @@ HLS(HTTP Live Streaming)を使いました。ストリーミング
   - 正規化をすることなくなるべく関連する情報を一つのドキュメントに入れました。
 - GraphQL
   - スキーマ設計は1回で必要な情報を取得できるようにしました。
-
+### CI
+- テスト動かしています。
+- Docker Hubにpushしています。
+- kubernetesのマニフェストファイルのimage tagをコミット最新のものに変更しています。またimage tagはgitのcommit hashを使っています。
 ## ディレクトリ構成
-
 <pre>
 .
 ├── Dockerfile
