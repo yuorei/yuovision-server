@@ -42,6 +42,10 @@ type (
 		ID    string
 		Video io.ReadSeeker
 	}
+
+	ThumbnailImage struct {
+		ID string
+	}
 )
 
 func NewVideoID() string {
@@ -76,5 +80,11 @@ func NewVideoFile(id string, video io.ReadSeeker) *VideoFile {
 	return &VideoFile{
 		ID:    id,
 		Video: video,
+	}
+}
+
+func NewThumbnailImage(id string) ThumbnailImage {
+	return ThumbnailImage{
+		ID: id,
 	}
 }

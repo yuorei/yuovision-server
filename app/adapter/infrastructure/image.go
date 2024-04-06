@@ -71,7 +71,13 @@ func (i *Infrastructure) ConvertThumbnailToWebp(ctx context.Context, imageFile *
 
 func (i *Infrastructure) UploadImageForStorage(ctx context.Context, id string) (string, error) {
 	imagePath := id + ".webp"
-	defer os.Remove(imagePath)
+	defer func() error {
+		err := os.Remove(imagePath)
+		if err != nil {
+			return err
+		}
+		return nil
+	}()
 	accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 
