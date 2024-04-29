@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/yuorei/video-server/app/application"
 	"github.com/yuorei/video-server/app/domain"
@@ -45,7 +46,7 @@ func (s *VideoService) Video(ctx context.Context, id *video_grpc.VideoID) (*vide
 func (s *VideoService) UploadThumbnail(stream video_grpc.VideoService_UploadThumbnailServer) error {
 	ctx := context.Background()
 	var imageFile *os.File
-	var id string
+	var id, contentType string
 
 	for {
 		input, err := stream.Recv()
@@ -63,23 +64,24 @@ func (s *VideoService) UploadThumbnail(stream video_grpc.VideoService_UploadThum
 				if err != nil {
 					return err
 				}
-			case *video_grpc.UploadThumbnailInput_Id:
-				id = x.Id
-				imageFile, err = os.Create(id + ".webp")
-				if err != nil {
-					return err
+			case *video_grpc.UploadThumbnailInput_Meta:
+				id = x.Meta.Id
+				contentType = x.Meta.ContentType
+				if x.Meta.ContentType != "" {
+					contentType = strings.Split(contentType, "/")[1]
+					imageFile, err = os.Create(id + "." + contentType)
+					if err != nil {
+						return err
+					}
+					defer imageFile.Close()
 				}
-				defer imageFile.Close()
 			}
 		}
 	}
 	// TODO
-	// サムネがなかった場合にサムネを作る処理
-	// WEBPに変換する処理
 	// 既定サイズにきりとりする処理
-	// 画像をアップロードする処理 done
 
-	thumbnail := domain.NewThumbnailImage(id)
+	thumbnail := domain.NewThumbnailImage(id, contentType)
 	err := s.usecase.UploadThumbnail(ctx, thumbnail)
 	if err != nil {
 		return err
