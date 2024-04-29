@@ -19,13 +19,10 @@ type (
 	}
 
 	UploadVideo struct {
-		ID               string
-		Video            io.ReadSeeker
-		VideoContentType string
-		ThumbnailImage   *io.ReadSeeker
-		ImageContentType string
-		Title            string
-		Description      *string
+		ID          string
+		Video       io.ReadSeeker
+		Title       string
+		Description *string
 	}
 
 	UploadVideoResponse struct {
@@ -64,15 +61,12 @@ func NewVideo(id string, videoURL string, thumbnailImageURL string, title string
 	}
 }
 
-func NewUploadVideo(id string, video io.ReadSeeker, videoContentType string, thumbnailImage *io.ReadSeeker, imageContentType string, title string, description *string) *UploadVideo {
+func NewUploadVideo(id string, video io.ReadSeeker, title string, description *string) *UploadVideo {
 	return &UploadVideo{
-		ID:               id,
-		Video:            video,
-		VideoContentType: videoContentType,
-		ThumbnailImage:   thumbnailImage,
-		ImageContentType: imageContentType,
-		Title:            title,
-		Description:      description,
+		ID:          id,
+		Video:       video,
+		Title:       title,
+		Description: description,
 	}
 }
 

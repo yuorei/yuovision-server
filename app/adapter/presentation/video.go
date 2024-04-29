@@ -2,8 +2,10 @@ package presentation
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/yuorei/video-server/app/application"
 	"github.com/yuorei/video-server/app/domain"
@@ -91,5 +93,70 @@ func (s *VideoService) UploadThumbnail(stream video_grpc.VideoService_UploadThum
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (s *VideoService) UploadVideo(stream video_grpc.VideoService_UploadVideoServer) error {
+	ctx := context.Background()
+	var videoFile *os.File
+	var id string
+	var meta *video_grpc.VideoMeta
+
+	for {
+		input, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		if input.GetValue() != nil {
+			switch x := input.GetValue().(type) {
+			case *video_grpc.UploadVideoInput_Video:
+				_, err := videoFile.Write(x.Video)
+				if err != nil {
+					return err
+				}
+			case *video_grpc.UploadVideoInput_Meta:
+				meta = x.Meta
+				id = x.Meta.Id
+				if id == "" {
+					return fmt.Errorf("id is required")
+				}
+				tempDir := "temp"
+				os.MkdirAll(tempDir, 0755)
+				tempMp4 := filepath.Join(tempDir, id+".mp4")
+				videoFile, err = os.Create(tempMp4)
+				if err != nil {
+					return err
+				}
+				defer videoFile.Close()
+			}
+		}
+	}
+
+	video := domain.NewUploadVideo(id, videoFile, meta.Title, &meta.Description)
+	uploadVideo, err := s.usecase.UploadVideo(ctx, video, meta.UserId, meta.ThumbnailImageUrl)
+	if err != nil {
+		return err
+	}
+
+	err = stream.SendAndClose(
+		&video_grpc.VideoPayload{
+			Id:                uploadVideo.ID,
+			VideoUrl:          uploadVideo.VideoURL,
+			Title:             uploadVideo.Title,
+			ThumbnailImageUrl: uploadVideo.ThumbnailImageURL,
+			Description:       *uploadVideo.Description,
+			CreatedAt:         timestamppb.New(uploadVideo.CreatedAt),
+			UpdatedAt:         timestamppb.New(uploadVideo.CreatedAt),
+			UserId:            uploadVideo.UploaderID,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
