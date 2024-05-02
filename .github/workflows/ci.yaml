@@ -36,8 +36,9 @@ jobs:
           fi
 
       - name: Test
-        run: find . # チェック Error: app/adapter/presentation/comment.go:8:2: no required module provides package github.com/yuorei/video-server/yuovision-proto/go/video/video_grpc; to add it:
-        run: make test
+         run: | # チェック Error: app/adapter/presentation/comment.go:8:2: no required module provides package github.com/yuorei/video-server/yuovision-proto/go/video/video_grpc; to add it:
+          find .
+          make test
 
       - name: Build
         run: |
