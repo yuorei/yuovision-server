@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/yuorei/video-server/app/application"
 	"github.com/yuorei/video-server/app/domain"
 	"github.com/yuorei/video-server/yuovision-proto/go/video/video_grpc"
@@ -43,6 +44,56 @@ func (s *VideoService) Video(ctx context.Context, id *video_grpc.VideoID) (*vide
 	}, nil
 }
 
+func (s *VideoService) Videos(ctx context.Context, _ *empty.Empty) (*video_grpc.VideosResponse, error) {
+	videos, err := s.usecase.GetVideos(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var videoPayloads []*video_grpc.VideoPayload
+	for _, video := range videos {
+		videoPayloads = append(videoPayloads, &video_grpc.VideoPayload{
+			Id:                video.ID,
+			VideoUrl:          video.VideoURL,
+			Title:             video.Title,
+			ThumbnailImageUrl: video.ThumbnailImageURL,
+			Description:       *video.Description,
+			CreatedAt:         timestamppb.New(video.CreatedAt),
+			UpdatedAt:         timestamppb.New(video.UpdatedAt),
+			UserId:            video.UploaderID,
+		})
+	}
+
+	return &video_grpc.VideosResponse{
+		Videos: videoPayloads,
+	}, nil
+}
+
+func (s *VideoService) VideosByUserID(ctx context.Context, id *video_grpc.VideoUserID) (*video_grpc.VideosResponse, error) {
+	videos, err := s.usecase.GetVideosByUserID(ctx, id.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	var videoPayloads []*video_grpc.VideoPayload
+	for _, video := range videos {
+		videoPayloads = append(videoPayloads, &video_grpc.VideoPayload{
+			Id:                video.ID,
+			VideoUrl:          video.VideoURL,
+			Title:             video.Title,
+			ThumbnailImageUrl: video.ThumbnailImageURL,
+			Description:       *video.Description,
+			CreatedAt:         timestamppb.New(video.CreatedAt),
+			UpdatedAt:         timestamppb.New(video.UpdatedAt),
+			UserId:            video.UploaderID,
+		})
+	}
+
+	return &video_grpc.VideosResponse{
+		Videos: videoPayloads,
+	}, nil
+}
+
 func (s *VideoService) UploadThumbnail(stream video_grpc.VideoService_UploadThumbnailServer) error {
 	ctx := context.Background()
 	var imageFile *os.File
@@ -70,6 +121,13 @@ func (s *VideoService) UploadThumbnail(stream video_grpc.VideoService_UploadThum
 				if x.Meta.ContentType != "" {
 					contentType = strings.Split(contentType, "/")[1]
 					imageFile, err = os.Create(id + "." + contentType)
+					defer func() {
+						if _, err := os.Stat(id + "." + contentType); err == nil {
+							if err := os.Remove(id + "." + contentType); err != nil {
+								return
+							}
+						}
+					}()
 					if err != nil {
 						return err
 					}
@@ -134,6 +192,13 @@ func (s *VideoService) UploadVideo(stream video_grpc.VideoService_UploadVideoSer
 					return err
 				}
 				defer videoFile.Close()
+				defer func() {
+					if _, err := os.Stat(tempMp4); err == nil {
+						if err := os.Remove(tempMp4); err != nil {
+							return
+						}
+					}
+				}()
 			}
 		}
 	}

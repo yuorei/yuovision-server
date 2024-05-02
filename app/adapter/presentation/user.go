@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/yuorei/video-server/app/application"
+	"github.com/yuorei/video-server/app/domain"
 	"github.com/yuorei/video-server/yuovision-proto/go/video/video_grpc"
 )
 
@@ -32,7 +33,8 @@ func (s *UserService) User(ctx context.Context, input *video_grpc.UserID) (*vide
 }
 
 func (s *UserService) RegisterUser(ctx context.Context, input *video_grpc.UserInput) (*video_grpc.UserPayload, error) {
-	user, err := s.usecase.UserInputPort.RegisterUser(ctx)
+	user := domain.NewUser(input.Id, input.Name, input.ProfileImageUrl, input.SubscribeChannelIds)
+	user, err := s.usecase.UserInputPort.RegisterUser(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -42,5 +44,29 @@ func (s *UserService) RegisterUser(ctx context.Context, input *video_grpc.UserIn
 		Name:                user.Name,
 		ProfileImageUrl:     user.ProfileImageURL,
 		SubscribeChannelIds: user.Subscribechannelids,
+	}, nil
+}
+
+func (s *UserService) SubscribeChannel(ctx context.Context, input *video_grpc.SubscribeChannelInput) (*video_grpc.SubscriptionPayload, error) {
+	subscribeChannel := domain.NewSubscribeChannel(input.UserId, input.ChannelId)
+	subscribeChannel, err := s.usecase.UserInputPort.SubscribeChannel(ctx, subscribeChannel)
+	if err != nil {
+		return nil, err
+	}
+
+	return &video_grpc.SubscriptionPayload{
+		IsSuccess: subscribeChannel.IsSuccess,
+	}, nil
+}
+
+func (s *UserService) UnSubscribeChannel(ctx context.Context, input *video_grpc.SubscribeChannelInput) (*video_grpc.SubscriptionPayload, error) {
+	subscribeChannel := domain.NewSubscribeChannel(input.UserId, input.ChannelId)
+	subscribeChannel, err := s.usecase.UserInputPort.UnSubscribeChannel(ctx, subscribeChannel)
+	if err != nil {
+		return nil, err
+	}
+
+	return &video_grpc.SubscriptionPayload{
+		IsSuccess: subscribeChannel.IsSuccess,
 	}, nil
 }
