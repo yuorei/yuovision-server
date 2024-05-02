@@ -16,6 +16,7 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+          submodules: recursive
 
       - name: Setup Go
         uses: actions/setup-go@v5
