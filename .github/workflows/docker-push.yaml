@@ -43,9 +43,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libwebp-dev
 
-    - name: Run Make Gen
-      run: make gen
-
     - name: Update Kubernetes Deployment Image
       run: |
         sed -i 's|yuorei/video-server:[^ ]*|yuorei/video-server:${{ github.sha }}|' kubernetes/deployment.yaml
