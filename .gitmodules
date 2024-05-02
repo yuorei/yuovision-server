@@ -1,0 +1,3 @@
+[submodule "yuovision-proto"]
+	path = yuovision-proto
+	url = git@github.com:yuorei/yuovision-proto.git
