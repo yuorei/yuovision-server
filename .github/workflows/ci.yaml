@@ -24,6 +24,11 @@ jobs:
         with:
           go-version-file: "go.mod"
 
+      - name: Install libwebp-dev
+        run: |
+          apt-get update
+          apt-get install libwebp-dev
+
       - name: Install dependencies
         run: go mod download
 
