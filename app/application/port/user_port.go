@@ -9,7 +9,7 @@ import (
 // adaputerがusecase層を呼び出されるメソッドのインターフェースを定義
 type UserInputPort interface {
 	GetUser(context.Context, string) (*domain.User, error)
-	RegisterUser(context.Context) (*domain.User, error)
+	RegisterUser(context.Context, *domain.User) (*domain.User, error)
 	SubscribeChannel(context.Context, *domain.SubscribeChannel) (*domain.SubscribeChannel, error)
 	UnSubscribeChannel(context.Context, *domain.SubscribeChannel) (*domain.SubscribeChannel, error)
 }

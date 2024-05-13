@@ -11,7 +11,7 @@ type VideoInputPort interface {
 	GetVideos(context.Context) ([]*domain.Video, error)
 	GetVideosByUserID(context.Context, string) ([]*domain.Video, error)
 	GetVideo(context.Context, string) (*domain.Video, error)
-	UploadVideo(context.Context, *domain.UploadVideo) (*domain.UploadVideoResponse, error)
+	UploadVideo(context.Context, *domain.UploadVideo, string, string) (*domain.UploadVideoResponse, error)
 }
 
 // ユースケースからインフラを呼び出されるメソッドのインターフェースを定義
