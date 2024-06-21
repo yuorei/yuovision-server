@@ -1,7 +1,0 @@
-interface Node {
-  id: ID! @goField(forceResolver: true)
-}
-
-type Query{
-  node(id: ID!): Node!
-}

@@ -1,48 +1,42 @@
 package router
 
 import (
+	"fmt"
 	"log"
-	"net/http"
+	"net"
 	"os"
 
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/gorilla/mux"
-	"github.com/rs/cors"
-	"github.com/yuorei/video-server/graph/generated"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	"github.com/yuorei/video-server/app/adapter/infrastructure"
-	resolver "github.com/yuorei/video-server/app/adapter/presentation/resolver"
+	"github.com/yuorei/video-server/app/adapter/presentation"
 	"github.com/yuorei/video-server/app/application"
-	"github.com/yuorei/video-server/middleware"
+	"github.com/yuorei/video-server/yuovision-proto/go/video/video_grpc"
 )
 
 func NewRouter() {
-	const defaultPort = "8080"
+	const defaultPort = "50051"
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
 
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s := grpc.NewServer()
+
 	infra := infrastructure.NewInfrastructure()
 	app := application.NewApplication(infra)
-	r := resolver.NewResolver(app)
-	c := generated.Config{Resolvers: r}
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
-
-	corsOpts := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
-		// Logger:         log.New(os.Stdout, "video-server", log.LstdFlags),
-		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodOptions},
-		AllowedHeaders: []string{"*"},
-	})
-
-	router := mux.NewRouter()
-	router.Use(middleware.Middleware())
-	router.PathPrefix("/graphql").Handler(corsOpts.Handler(srv))
-	router.PathPrefix("/").Handler(playground.Handler("GraphQL playground", "/graphql"))
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	video_grpc.RegisterUserServiceServer(s, presentation.NewUserService(app))
+	video_grpc.RegisterCommentServiceServer(s, presentation.NewCommentService(app))
+	video_grpc.RegisterVideoServiceServer(s, presentation.NewVideoService(app))
+	reflection.Register(s)
+	log.Printf("start gRPC server port: %v", port)
+	s.Serve(listener)
 }

@@ -7,6 +7,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - uses: actions/cache@v4
         with:
@@ -22,6 +24,11 @@ jobs:
         with:
           go-version-file: "go.mod"
 
+      - name: Install libwebp-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install libwebp-dev
+
       - name: Install dependencies
         run: go mod download
 
@@ -34,13 +41,9 @@ jobs:
             exit 1
           fi
 
-      - name: generate
-        run: |
-          sudo apt-get install -y libwebp-dev
-          make gen
-
       - name: Test
-        run: make test
+        run: |
+          make test
 
       - name: Build
         run: |
