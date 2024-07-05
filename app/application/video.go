@@ -6,7 +6,6 @@ import (
 
 	"github.com/yuorei/video-server/app/application/port"
 	"github.com/yuorei/video-server/app/domain"
-	"github.com/yuorei/video-server/middleware"
 )
 
 type VideoUseCase struct {
@@ -49,14 +48,9 @@ func (a *Application) GetVideo(ctx context.Context, videoID string) (*domain.Vid
 	return a.Video.videoRepository.GetVideoFromDB(ctx, videoID)
 }
 
-func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo) (*domain.UploadVideoResponse, error) {
-	id, err := middleware.GetUserIDFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo, userID string, imageURL string) (*domain.UploadVideoResponse, error) {
 	videofile := domain.NewVideoFile(video.ID, video.Video)
-	err = a.Video.videoRepository.ConvertVideoHLS(ctx, videofile)
+	err := a.Video.videoRepository.ConvertVideoHLS(ctx, videofile)
 	if err != nil {
 		return nil, err
 	}
@@ -66,25 +60,7 @@ func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo
 		return nil, err
 	}
 
-	imageBuffer, err := a.Image.imageRepository.ConvertThumbnailToWebp(ctx, video.ThumbnailImage, video.ImageContentType, video.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	var imageURL string
-	if imageBuffer == nil {
-		err = a.Image.imageRepository.CreateThumbnail(ctx, video.ID, video.Video)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	imageURL, err = a.Image.imageRepository.UploadImageForStorage(ctx, video.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	videoResponse, err := a.Video.videoRepository.InsertVideo(ctx, video.ID, videoURL, imageURL, video.Title, video.Description, id)
+	videoResponse, err := a.Video.videoRepository.InsertVideo(ctx, video.ID, videoURL, imageURL, video.Title, video.Description, userID, video.Tags, video.IsAdult, video.IsPrivate, video.IsExternalCutout, video.IsAd)
 	if err != nil {
 		return nil, err
 	}

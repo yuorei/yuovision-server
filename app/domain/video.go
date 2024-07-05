@@ -14,6 +14,11 @@ type (
 		Title             string
 		Description       *string
 		UploaderID        string
+		Tags              []string
+		IsAdult           bool
+		IsPrivate         bool
+		IsExternalCutout  bool
+		IsAd              bool
 		CreatedAt         time.Time
 		UpdatedAt         time.Time
 	}
@@ -21,11 +26,13 @@ type (
 	UploadVideo struct {
 		ID               string
 		Video            io.ReadSeeker
-		VideoContentType string
-		ThumbnailImage   *io.ReadSeeker
-		ImageContentType string
 		Title            string
 		Description      *string
+		Tags             []string
+		IsAdult          bool
+		IsPrivate        bool
+		IsExternalCutout bool
+		IsAd             bool
 	}
 
 	UploadVideoResponse struct {
@@ -35,12 +42,22 @@ type (
 		Title             string
 		Description       *string
 		UploaderID        string
+		Tags              []string
+		IsAdult           bool
+		IsPrivate         bool
+		IsExternalCutout  bool
+		IsAd              bool
 		CreatedAt         time.Time
 	}
 
 	VideoFile struct {
 		ID    string
 		Video io.ReadSeeker
+	}
+
+	ThumbnailImage struct {
+		ID          string
+		ContentType string
 	}
 )
 
@@ -60,15 +77,17 @@ func NewVideo(id string, videoURL string, thumbnailImageURL string, title string
 	}
 }
 
-func NewUploadVideo(id string, video io.ReadSeeker, videoContentType string, thumbnailImage *io.ReadSeeker, imageContentType string, title string, description *string) *UploadVideo {
+func NewUploadVideo(id string, video io.ReadSeeker, title string, description *string, tags []string, isAdult, isPrivate, isExternalCutout, isAd bool) *UploadVideo {
 	return &UploadVideo{
 		ID:               id,
 		Video:            video,
-		VideoContentType: videoContentType,
-		ThumbnailImage:   thumbnailImage,
-		ImageContentType: imageContentType,
 		Title:            title,
 		Description:      description,
+		Tags:             tags,
+		IsAdult:          isAdult,
+		IsPrivate:        isPrivate,
+		IsExternalCutout: isExternalCutout,
+		IsAd:             isAd,
 	}
 }
 
@@ -76,5 +95,12 @@ func NewVideoFile(id string, video io.ReadSeeker) *VideoFile {
 	return &VideoFile{
 		ID:    id,
 		Video: video,
+	}
+}
+
+func NewThumbnailImage(id, contentType string) ThumbnailImage {
+	return ThumbnailImage{
+		ID:          id,
+		ContentType: contentType,
 	}
 }

@@ -6,11 +6,9 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
-	"io"
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -20,16 +18,16 @@ import (
 	"github.com/kolesa-team/go-webp/webp"
 )
 
-func (i *Infrastructure) ConvertThumbnailToWebp(ctx context.Context, imageFile *io.ReadSeeker, contentType, id string) (*os.File, error) {
+func (i *Infrastructure) ConvertThumbnailToWebp(ctx context.Context, imageFile *os.File, contentType, id string) (*os.File, error) {
 	if imageFile == nil {
 		return nil, nil
 	}
 
 	var image image.Image
-	switch contentType {
+	switch "image/" + contentType {
 	case "image/jpeg":
 		// JPEG画像をデコード
-		img, err := jpeg.Decode(*imageFile)
+		img, err := jpeg.Decode(imageFile)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to decode JPEG image")
 		}
@@ -37,22 +35,16 @@ func (i *Infrastructure) ConvertThumbnailToWebp(ctx context.Context, imageFile *
 
 	case "image/png":
 		// PNG画像をデコード
-		img, err := png.Decode(*imageFile)
+		img, err := png.Decode(imageFile)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to decode PNG image")
 		}
 		image = img
 
 	case "image/webp":
-		// WEBP画像をデコード
-		img, err := webp.Decode(*imageFile, nil)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to decode WEBP image")
-		}
-		image = img
-
+		return imageFile, nil
 	default:
-		return nil, fmt.Errorf("This file is not supported.")
+		return nil, fmt.Errorf("This file is not supported: %s", contentType)
 	}
 
 	imageTmp, err := os.Create(id + ".webp")
@@ -71,7 +63,13 @@ func (i *Infrastructure) ConvertThumbnailToWebp(ctx context.Context, imageFile *
 
 func (i *Infrastructure) UploadImageForStorage(ctx context.Context, id string) (string, error) {
 	imagePath := id + ".webp"
-	defer os.Remove(imagePath)
+	defer func() error {
+		err := os.Remove(imagePath)
+		if err != nil {
+			return err
+		}
+		return nil
+	}()
 	accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 
@@ -132,12 +130,13 @@ func (i *Infrastructure) UploadImageForStorage(ctx context.Context, id string) (
 	return url, nil
 }
 
-func (i *Infrastructure) CreateThumbnail(ctx context.Context, id string, video io.ReadSeeker) error {
-	tempDir := "temp"
-	tempMp4 := filepath.Join(tempDir, id+".mp4")
-
+func (i *Infrastructure) CreateThumbnail(ctx context.Context, id string) error {
+	const bucketName = "video"
 	imagePath := id + ".webp"
-	cmd := exec.Command("ffmpeg", "-i", tempMp4, "-ss", "00:00:00", "-vframes", "1", imagePath)
+
+	url := fmt.Sprintf("%s/%s/output_%s.m3u8", os.Getenv("AWS_S3_URL"), bucketName, id)
+	// S3から取得HLS
+	cmd := exec.Command("ffmpeg", "-i", url, "-ss", "00:00:00", "-vframes", "1", imagePath)
 	log.Println(cmd.Args)
 	result, err := cmd.CombinedOutput()
 	log.Println(string(result))
@@ -145,6 +144,6 @@ func (i *Infrastructure) CreateThumbnail(ctx context.Context, id string, video i
 		return fmt.Errorf("failed to execute ffmpeg command: %w", err)
 	}
 
-	os.Remove(tempMp4)
+	// os.Remove(tempMp4)
 	return nil
 }

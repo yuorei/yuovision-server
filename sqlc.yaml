@@ -1,0 +1,9 @@
+version: "2"
+sql:
+  - engine: "mysql"
+    queries: "db/sqlc/sql/query.sql"
+    schema: "db/atlas/schema.sql"
+    gen:
+      go:
+        package: "sqlc"
+        out: "db/sqlc"

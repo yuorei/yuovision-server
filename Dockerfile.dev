@@ -14,4 +14,6 @@ ENV GOCACHE=/tmp/.cache
 COPY go.mod go.sum ./
 RUN go mod download
 
+ENV TZ Asia/Tokyo
+
 CMD ["/bin/bash"]

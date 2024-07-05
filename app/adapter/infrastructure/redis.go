@@ -41,6 +41,9 @@ func setToRedis(ctx context.Context, client *redis.Client, key string, expiratio
 
 	var videos []*domain.Video
 	err = json.Unmarshal(bytes, &videos)
+	if err != nil {
+		return err
+	}
 
 	return client.Set(ctx, key, bytes, expiration).Err()
 }
