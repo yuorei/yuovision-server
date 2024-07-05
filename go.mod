@@ -8,9 +8,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.26.2
 	github.com/aws/aws-sdk-go-v2/credentials v1.16.13
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.48.0
+	github.com/go-sql-driver/mysql v1.8.1
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.3
-	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/kolesa-team/go-webp v1.0.4
 	github.com/redis/go-redis/v9 v9.5.1
@@ -20,6 +20,7 @@ require (
 )
 
 require (
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.5.4 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.14.10 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.2.10 // indirect

@@ -38,5 +38,5 @@ func NewRouter() {
 	video_grpc.RegisterVideoServiceServer(s, presentation.NewVideoService(app))
 	reflection.Register(s)
 	log.Printf("start gRPC server port: %v", port)
-	s.Serve(listener)
+	log.Fatalln(s.Serve(listener))
 }

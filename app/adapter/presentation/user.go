@@ -29,11 +29,13 @@ func (s *UserService) User(ctx context.Context, input *video_grpc.UserID) (*vide
 		Name:                user.Name,
 		ProfileImageUrl:     user.ProfileImageURL,
 		SubscribeChannelIds: user.Subscribechannelids,
+		IsSubscribed:        user.IsSubscribed,
+		// Role:                 user.Role,
 	}, nil
 }
 
 func (s *UserService) RegisterUser(ctx context.Context, input *video_grpc.UserInput) (*video_grpc.UserPayload, error) {
-	user := domain.NewUser(input.Id, input.Name, input.ProfileImageUrl, input.SubscribeChannelIds)
+	user := domain.NewUser(input.Id, input.Name, input.ProfileImageUrl, input.SubscribeChannelIds, input.IsSubscribed, input.Role.String())
 	user, err := s.usecase.UserInputPort.RegisterUser(ctx, user)
 	if err != nil {
 		return nil, err
@@ -44,6 +46,8 @@ func (s *UserService) RegisterUser(ctx context.Context, input *video_grpc.UserIn
 		Name:                user.Name,
 		ProfileImageUrl:     user.ProfileImageURL,
 		SubscribeChannelIds: user.Subscribechannelids,
+		IsSubscribed:        user.IsSubscribed,
+		// Role:                user.Role,
 	}, nil
 }
 

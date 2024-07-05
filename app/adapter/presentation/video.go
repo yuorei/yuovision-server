@@ -52,15 +52,27 @@ func (s *VideoService) Videos(ctx context.Context, _ *empty.Empty) (*video_grpc.
 
 	var videoPayloads []*video_grpc.VideoPayload
 	for _, video := range videos {
+		var description string
+		if video.Description == nil {
+			description = ""
+		} else {
+			description = *video.Description
+		}
+
 		videoPayloads = append(videoPayloads, &video_grpc.VideoPayload{
 			Id:                video.ID,
 			VideoUrl:          video.VideoURL,
 			Title:             video.Title,
 			ThumbnailImageUrl: video.ThumbnailImageURL,
-			Description:       *video.Description,
+			Description:       description,
 			CreatedAt:         timestamppb.New(video.CreatedAt),
 			UpdatedAt:         timestamppb.New(video.UpdatedAt),
 			UserId:            video.UploaderID,
+			Tags:              video.Tags,
+			Private:           video.IsPrivate,
+			Adult:             video.IsAdult,
+			ExternalCutout:    video.IsExternalCutout,
+			IsAd:              video.IsAd,
 		})
 	}
 
@@ -86,6 +98,11 @@ func (s *VideoService) VideosByUserID(ctx context.Context, id *video_grpc.VideoU
 			CreatedAt:         timestamppb.New(video.CreatedAt),
 			UpdatedAt:         timestamppb.New(video.UpdatedAt),
 			UserId:            video.UploaderID,
+			Tags:              video.Tags,
+			Private:           video.IsPrivate,
+			Adult:             video.IsAdult,
+			ExternalCutout:    video.IsExternalCutout,
+			IsAd:              video.IsAd,
 		})
 	}
 
@@ -185,7 +202,10 @@ func (s *VideoService) UploadVideo(stream video_grpc.VideoService_UploadVideoSer
 					return fmt.Errorf("id is required")
 				}
 				tempDir := "temp"
-				os.MkdirAll(tempDir, 0755)
+				err := os.MkdirAll(tempDir, 0755)
+				if err != nil {
+					return err
+				}
 				tempMp4 := filepath.Join(tempDir, id+".mp4")
 				videoFile, err = os.Create(tempMp4)
 				if err != nil {
@@ -203,7 +223,7 @@ func (s *VideoService) UploadVideo(stream video_grpc.VideoService_UploadVideoSer
 		}
 	}
 
-	video := domain.NewUploadVideo(id, videoFile, meta.Title, &meta.Description)
+	video := domain.NewUploadVideo(id, videoFile, meta.Title, &meta.Description, meta.Tags, meta.Adult, meta.Private, meta.ExternalCutout, meta.IsAd)
 	uploadVideo, err := s.usecase.UploadVideo(ctx, video, meta.UserId, meta.ThumbnailImageUrl)
 	if err != nil {
 		return err
@@ -219,6 +239,11 @@ func (s *VideoService) UploadVideo(stream video_grpc.VideoService_UploadVideoSer
 			CreatedAt:         timestamppb.New(uploadVideo.CreatedAt),
 			UpdatedAt:         timestamppb.New(uploadVideo.CreatedAt),
 			UserId:            uploadVideo.UploaderID,
+			Tags:              uploadVideo.Tags,
+			Private:           uploadVideo.IsPrivate,
+			Adult:             uploadVideo.IsAdult,
+			ExternalCutout:    uploadVideo.IsExternalCutout,
+			IsAd:              uploadVideo.IsAd,
 		},
 	)
 	if err != nil {
