@@ -37,6 +37,8 @@ sql_output:
 gen:
 	./shell/gen_db.sh
 
+lint:
+	./shell/lint.sh
 
 prod:
 	set -a && source .env.prod && set +a&&\

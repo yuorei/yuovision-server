@@ -14,7 +14,10 @@ import (
 func (i *Infrastructure) ConvertVideoHLS(ctx context.Context, video *domain.VideoFile) error {
 	// HLS変換の実行
 	outputDir := "output"
-	os.MkdirAll(outputDir, 0755)
+	err := os.MkdirAll(outputDir, 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
 
 	output := "output_" + video.ID + ".m3u8"
 	outputHLS := filepath.Join(outputDir, output)

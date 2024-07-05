@@ -202,7 +202,10 @@ func (s *VideoService) UploadVideo(stream video_grpc.VideoService_UploadVideoSer
 					return fmt.Errorf("id is required")
 				}
 				tempDir := "temp"
-				os.MkdirAll(tempDir, 0755)
+				err := os.MkdirAll(tempDir, 0755)
+				if err != nil {
+					return err
+				}
 				tempMp4 := filepath.Join(tempDir, id+".mp4")
 				videoFile, err = os.Create(tempMp4)
 				if err != nil {
