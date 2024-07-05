@@ -70,7 +70,7 @@ func (i *Infrastructure) GetVideoFromDB(ctx context.Context, id string) (*domain
 		return nil, err
 	}
 
-	video := domain.NewVideo(dbVideo.ID, dbVideo.VideoUrl, dbVideo.ThumbnailImageUrl, dbVideo.Title, &dbVideo.Description.String, dbVideo.UploaderID, time.Now()) // dbVideo.CreatedAt)
+	video := domain.NewVideo(dbVideo.ID, dbVideo.VideoUrl, dbVideo.ThumbnailImageUrl, dbVideo.Title, &dbVideo.Description.String, dbVideo.UploaderID, dbVideo.CreatedAt)
 	for _, tag := range tags {
 		video.Tags = append(video.Tags, tag.TagName)
 	}

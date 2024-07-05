@@ -11,7 +11,6 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.3
-	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/kolesa-team/go-webp v1.0.4
 	github.com/redis/go-redis/v9 v9.5.1

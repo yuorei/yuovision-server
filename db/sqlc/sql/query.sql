@@ -17,8 +17,7 @@ DELETE FROM subscription WHERE user_id = ? AND channel_id = ?;
 SELECT u.id FROM user AS u JOIN subscription AS s ON u.id = s.channel_id WHERE s.user_id = ? AND s.channel_id = ? LIMIT 1;
 
 -- name: GetVideo :one
-SELECT id, video_url, thumbnail_image_url, title, description, is_private, is_adult, is_ad, uploader_id, watch_count, is_external_cutout FROM video WHERE id = ? LIMIT 1;
--- SELECT * FROM video WHERE id = ? LIMIT 1;
+SELECT * FROM video WHERE id = ? LIMIT 1;
 
 -- name: GetPublicAndNonAdultNonAdVideos :many
 SELECT * FROM video WHERE is_private   = false AND is_adult = false AND is_ad = false;
