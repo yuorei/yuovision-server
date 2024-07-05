@@ -239,11 +239,9 @@ func (q *Queries) GetPublicAndNonAdByUploaderID(ctx context.Context, uploaderID 
 }
 
 const getPublicAndNonAdultNonAdVideos = `-- name: GetPublicAndNonAdultNonAdVideos :many
-
 SELECT id, video_url, thumbnail_image_url, title, description, created_at, updated_at, is_private, is_adult, is_ad, uploader_id, watch_count, is_external_cutout FROM video WHERE is_private   = false AND is_adult = false AND is_ad = false
 `
 
-// SELECT * FROM video WHERE id = ? LIMIT 1;
 func (q *Queries) GetPublicAndNonAdultNonAdVideos(ctx context.Context) ([]Video, error) {
 	rows, err := q.db.QueryContext(ctx, getPublicAndNonAdultNonAdVideos)
 	if err != nil {
@@ -336,32 +334,20 @@ func (q *Queries) GetUserSubscriptionID(ctx context.Context, arg GetUserSubscrip
 }
 
 const getVideo = `-- name: GetVideo :one
-SELECT id, video_url, thumbnail_image_url, title, description, is_private, is_adult, is_ad, uploader_id, watch_count, is_external_cutout FROM video WHERE id = ? LIMIT 1
+SELECT id, video_url, thumbnail_image_url, title, description, created_at, updated_at, is_private, is_adult, is_ad, uploader_id, watch_count, is_external_cutout FROM video WHERE id = ? LIMIT 1
 `
 
-type GetVideoRow struct {
-	ID                string
-	VideoUrl          string
-	ThumbnailImageUrl string
-	Title             string
-	Description       sql.NullString
-	IsPrivate         bool
-	IsAdult           bool
-	IsAd              bool
-	UploaderID        string
-	WatchCount        int32
-	IsExternalCutout  bool
-}
-
-func (q *Queries) GetVideo(ctx context.Context, id string) (GetVideoRow, error) {
+func (q *Queries) GetVideo(ctx context.Context, id string) (Video, error) {
 	row := q.db.QueryRowContext(ctx, getVideo, id)
-	var i GetVideoRow
+	var i Video
 	err := row.Scan(
 		&i.ID,
 		&i.VideoUrl,
 		&i.ThumbnailImageUrl,
 		&i.Title,
 		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.IsPrivate,
 		&i.IsAdult,
 		&i.IsAd,
