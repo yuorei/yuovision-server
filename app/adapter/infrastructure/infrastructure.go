@@ -13,7 +13,7 @@ type Infrastructure struct {
 
 func NewInfrastructure() *Infrastructure {
 	return &Infrastructure{
-		db:    db.NewMongoDB(),
+		db:    db.NewMySQLDB(),
 		redis: r.ConnectRedis(),
 	}
 }
