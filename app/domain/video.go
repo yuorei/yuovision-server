@@ -14,15 +14,25 @@ type (
 		Title             string
 		Description       *string
 		UploaderID        string
+		Tags              []string
+		IsAdult           bool
+		IsPrivate         bool
+		IsExternalCutout  bool
+		IsAd              bool
 		CreatedAt         time.Time
 		UpdatedAt         time.Time
 	}
 
 	UploadVideo struct {
-		ID          string
-		Video       io.ReadSeeker
-		Title       string
-		Description *string
+		ID               string
+		Video            io.ReadSeeker
+		Title            string
+		Description      *string
+		Tags             []string
+		IsAdult          bool
+		IsPrivate        bool
+		IsExternalCutout bool
+		IsAd             bool
 	}
 
 	UploadVideoResponse struct {
@@ -32,6 +42,11 @@ type (
 		Title             string
 		Description       *string
 		UploaderID        string
+		Tags              []string
+		IsAdult           bool
+		IsPrivate         bool
+		IsExternalCutout  bool
+		IsAd              bool
 		CreatedAt         time.Time
 	}
 
@@ -62,12 +77,17 @@ func NewVideo(id string, videoURL string, thumbnailImageURL string, title string
 	}
 }
 
-func NewUploadVideo(id string, video io.ReadSeeker, title string, description *string) *UploadVideo {
+func NewUploadVideo(id string, video io.ReadSeeker, title string, description *string, tags []string, isAdult, isPrivate, isExternalCutout, isAd bool) *UploadVideo {
 	return &UploadVideo{
-		ID:          id,
-		Video:       video,
-		Title:       title,
-		Description: description,
+		ID:               id,
+		Video:            video,
+		Title:            title,
+		Description:      description,
+		Tags:             tags,
+		IsAdult:          isAdult,
+		IsPrivate:        isPrivate,
+		IsExternalCutout: isExternalCutout,
+		IsAd:             isAd,
 	}
 }
 

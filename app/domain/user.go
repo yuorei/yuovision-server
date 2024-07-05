@@ -6,6 +6,8 @@ type (
 		Name                string
 		ProfileImageURL     string
 		Subscribechannelids []string
+		IsSubscribed        bool
+		Role                string
 	}
 
 	SubscribeChannel struct {
@@ -19,12 +21,14 @@ type (
 	}
 )
 
-func NewUser(id, name, profileImageURL string, subscribechannelids []string) *User {
+func NewUser(id, name, profileImageURL string, subscribechannelids []string, isSubscribed bool, role string) *User {
 	return &User{
 		ID:                  id,
 		Name:                name,
 		ProfileImageURL:     profileImageURL,
 		Subscribechannelids: subscribechannelids,
+		IsSubscribed:        isSubscribed,
+		Role:                role,
 	}
 }
 

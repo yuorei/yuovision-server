@@ -29,10 +29,11 @@ func (s *CommentService) CommentsByVideo(ctx context.Context, id *video_grpc.Com
 	var commentPayloads []*video_grpc.Comment
 	for _, comment := range comments {
 		commentPayloads = append(commentPayloads, &video_grpc.Comment{
-			Id:        comment.ID,
-			UserId:    comment.User.ID,
-			Text:      comment.Text,
-			Name:      comment.User.Name,
+			Id:     comment.ID,
+			UserId: comment.User.ID,
+			Text:   comment.Text,
+			Name:   comment.User.Name,
+			// IsOwner:   isOwner,
 			CreatedAt: timestamppb.New(comment.CreatedAt),
 			UpdatedAt: timestamppb.New(comment.UpdatedAt),
 			Video: &video_grpc.Video{
@@ -55,10 +56,11 @@ func (s *CommentService) PostComment(ctx context.Context, input *video_grpc.Post
 	}
 
 	return &video_grpc.PostCommentPayload{
-		Id:        comment.ID,
-		UserId:    comment.User.ID,
-		Text:      comment.Text,
-		Name:      comment.User.Name,
+		Id:     comment.ID,
+		UserId: comment.User.ID,
+		Text:   comment.Text,
+		Name:   comment.User.Name,
+		// IsOwner:   comment.IsOwner,
 		CreatedAt: timestamppb.New(comment.CreatedAt),
 		UpdatedAt: timestamppb.New(comment.UpdatedAt),
 		Video: &video_grpc.Video{

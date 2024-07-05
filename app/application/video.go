@@ -60,7 +60,7 @@ func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo
 		return nil, err
 	}
 
-	videoResponse, err := a.Video.videoRepository.InsertVideo(ctx, video.ID, videoURL, imageURL, video.Title, video.Description, userID)
+	videoResponse, err := a.Video.videoRepository.InsertVideo(ctx, video.ID, videoURL, imageURL, video.Title, video.Description, userID, video.Tags, video.IsAdult, video.IsPrivate, video.IsExternalCutout, video.IsAd)
 	if err != nil {
 		return nil, err
 	}
