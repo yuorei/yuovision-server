@@ -3,6 +3,10 @@ package infrastructure
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"log"
+	"os"
+	"os/exec"
 	"time"
 
 	"github.com/yuorei/video-server/app/domain"
@@ -200,4 +204,33 @@ func (i *Infrastructure) ChechWatchCount(ctx context.Context, videoID, userID st
 		return false, nil
 	}
 	return true, nil
+}
+
+func (i *Infrastructure) CutVideo(ctx context.Context, videoID, userID string, int, end int) (string, error) {
+	const bucketName = "video"
+	err := os.Mkdir("cut-video", 0755)
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp dir: %w", err)
+	}
+
+	key := videoID + domain.IDSeparator + domain.NewUUID() + ".mp4"
+	imagePath := "cut-video" + "/" + key
+	url := fmt.Sprintf("%s/%s/output_%s.m3u8", os.Getenv("AWS_S3_URL"), bucketName, videoID)
+
+	cmd := exec.Command("ffmpeg", "-ss", "00:00:00", "-t", "00:00:10", "-i", url, "-c", "copy", imagePath)
+	log.Println(cmd.Args)
+	result, err := cmd.CombinedOutput()
+	log.Println(string(result))
+	if err != nil {
+		return "", fmt.Errorf("failed to execute ffmpeg command: %w", err)
+	}
+
+	uploadbucketName := "cut-video"
+	err = uploadVideoForS3(imagePath, uploadbucketName)
+	if err != nil {
+		return "", err
+	}
+
+	cutURL := fmt.Sprintf("%s/%s/%s", os.Getenv("AWS_S3_URL"), uploadbucketName, key)
+	return cutURL, nil
 }

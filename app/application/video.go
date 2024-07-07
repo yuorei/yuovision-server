@@ -82,3 +82,7 @@ func (a *Application) IncrementWatchCount(ctx context.Context, videoID, userID s
 
 	return a.Video.videoRepository.IncrementWatchCount(ctx, videoID, userID)
 }
+
+func (a *Application) CutVideo(ctx context.Context, videoID, userID string, start, end int) (string, error) {
+	return a.Video.videoRepository.CutVideo(ctx, videoID, userID, start, end)
+}

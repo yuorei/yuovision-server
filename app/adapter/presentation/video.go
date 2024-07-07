@@ -274,3 +274,14 @@ func (s *VideoService) IncrementWatchCount(ctx context.Context, input *video_grp
 		Count: int32(watchCount),
 	}, nil
 }
+
+func (s *VideoService) CutVideo(ctx context.Context, input *video_grpc.CutVideoInput) (*video_grpc.CutVideoPayload, error) {
+	url, err := s.usecase.CutVideo(ctx, input.VideoId, input.UserId, int(input.Start), int(input.End))
+	if err != nil {
+		return nil, err
+	}
+
+	return &video_grpc.CutVideoPayload{
+		VideoUrl: url,
+	}, nil
+}
