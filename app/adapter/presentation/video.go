@@ -265,7 +265,7 @@ func (s *VideoService) WatchCount(ctx context.Context, id *video_grpc.WatchCount
 }
 
 func (s *VideoService) IncrementWatchCount(ctx context.Context, input *video_grpc.IncrementWatchCountInput) (*video_grpc.WatchCountPayload, error) {
-	watchCount, err := s.usecase.IncrementWatchCount(ctx, input.VideoId)
+	watchCount, err := s.usecase.IncrementWatchCount(ctx, input.VideoId, input.UserId)
 	if err != nil {
 		return nil, err
 	}

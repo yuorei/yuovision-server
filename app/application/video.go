@@ -72,6 +72,13 @@ func (a *Application) GetWatchCount(ctx context.Context, videoID string) (int, e
 	return a.Video.videoRepository.GetWatchCount(ctx, videoID)
 }
 
-func (a *Application) IncrementWatchCount(ctx context.Context, videoID string) (int, error) {
-	return a.Video.videoRepository.IncrementWatchCount(ctx, videoID)
+func (a *Application) IncrementWatchCount(ctx context.Context, videoID, userID string) (int, error) {
+	ok, err := a.Video.videoRepository.ChechWatchCount(ctx, videoID, userID)
+	if err != nil {
+		return 0, err
+	} else if !ok {
+		return 0, nil
+	}
+
+	return a.Video.videoRepository.IncrementWatchCount(ctx, videoID, userID)
 }

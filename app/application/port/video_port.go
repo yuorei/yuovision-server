@@ -13,7 +13,7 @@ type VideoInputPort interface {
 	GetVideo(context.Context, string) (*domain.Video, error)
 	UploadVideo(context.Context, *domain.UploadVideo, string, string) (*domain.UploadVideoResponse, error)
 	GetWatchCount(context.Context, string) (int, error)
-	IncrementWatchCount(context.Context, string) (int, error)
+	IncrementWatchCount(context.Context, string, string) (int, error)
 }
 
 // ユースケースからインフラを呼び出されるメソッドのインターフェースを定義
@@ -25,5 +25,6 @@ type VideoRepository interface {
 	GetVideoFromDB(context.Context, string) (*domain.Video, error)
 	InsertVideo(context.Context, string, string, string, string, *string, string, []string, bool, bool, bool, bool) (*domain.UploadVideoResponse, error)
 	GetWatchCount(context.Context, string) (int, error)
-	IncrementWatchCount(context.Context, string) (int, error)
+	ChechWatchCount(context.Context, string, string) (bool, error)
+	IncrementWatchCount(context.Context, string, string) (int, error)
 }

@@ -9,6 +9,10 @@ import (
 	"github.com/yuorei/video-server/db/sqlc"
 )
 
+type WatchCountJsonType struct {
+	Count int `json:"count"`
+}
+
 func (i *Infrastructure) GetVideosFromDB(ctx context.Context) ([]*domain.Video, error) {
 	var videos []*domain.Video
 	dbVideos, err := i.db.Database.GetPublicAndNonAdultNonAdVideos(ctx)
@@ -138,14 +142,30 @@ func (i *Infrastructure) InsertVideo(ctx context.Context, id string, videoURL st
 }
 
 func (i *Infrastructure) GetWatchCount(ctx context.Context, videoID string) (int, error) {
+	var watchCountJson WatchCountJsonType
+	hit, err := getFromRedis(ctx, i.redis, "watchcount"+domain.IDSeparator+videoID, &watchCountJson)
+	if err != nil {
+		return 0, err
+	} else if hit {
+		return watchCountJson.Count, nil
+	}
+
 	watchCount, err := i.db.Database.GetWatchCount(ctx, videoID)
 	if err != nil {
 		return 0, err
 	}
+
+	err = setToRedis(ctx, i.redis, "watchcount"+domain.IDSeparator+videoID, 1*time.Hour, &WatchCountJsonType{
+		Count: int(watchCount),
+	})
+	if err != nil {
+		return 0, err
+	}
+
 	return int(watchCount), nil
 }
 
-func (i *Infrastructure) IncrementWatchCount(ctx context.Context, videoID string) (int, error) {
+func (i *Infrastructure) IncrementWatchCount(ctx context.Context, videoID, userID string) (int, error) {
 	_, err := i.db.Database.IncrementWatchCount(ctx, videoID)
 	if err != nil {
 		return 0, err
@@ -155,5 +175,29 @@ func (i *Infrastructure) IncrementWatchCount(ctx context.Context, videoID string
 	if err != nil {
 		return 0, err
 	}
+
+	watchCountJsonType := WatchCountJsonType{
+		Count: int(watchCount),
+	}
+
+	err = setToRedis(ctx, i.redis, videoID+domain.IDSeparator+userID, 24*time.Hour, &watchCountJsonType)
+	if err != nil {
+		return 0, err
+	}
+
 	return int(watchCount), nil
+}
+
+func (i *Infrastructure) ChechWatchCount(ctx context.Context, videoID, userID string) (bool, error) {
+	key := videoID + domain.IDSeparator + userID
+
+	var watchCountJson WatchCountJsonType
+	hit, err := getFromRedis(ctx, i.redis, key, &watchCountJson)
+	if err != nil {
+		return false, err
+	}
+	if hit {
+		return false, nil
+	}
+	return true, nil
 }
