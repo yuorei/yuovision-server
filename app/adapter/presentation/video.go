@@ -252,3 +252,25 @@ func (s *VideoService) UploadVideo(stream video_grpc.VideoService_UploadVideoSer
 
 	return nil
 }
+
+func (s *VideoService) WatchCount(ctx context.Context, id *video_grpc.WatchCountInput) (*video_grpc.WatchCountPayload, error) {
+	watchCount, err := s.usecase.GetWatchCount(ctx, id.VideoId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &video_grpc.WatchCountPayload{
+		Count: int32(watchCount),
+	}, nil
+}
+
+func (s *VideoService) IncrementWatchCount(ctx context.Context, input *video_grpc.IncrementWatchCountInput) (*video_grpc.WatchCountPayload, error) {
+	watchCount, err := s.usecase.IncrementWatchCount(ctx, input.VideoId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &video_grpc.WatchCountPayload{
+		Count: int32(watchCount),
+	}, nil
+}

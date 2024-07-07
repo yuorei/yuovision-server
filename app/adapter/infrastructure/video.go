@@ -136,3 +136,24 @@ func (i *Infrastructure) InsertVideo(ctx context.Context, id string, videoURL st
 		// CreatedAt:         time.Now(),
 	}, nil
 }
+
+func (i *Infrastructure) GetWatchCount(ctx context.Context, videoID string) (int, error) {
+	watchCount, err := i.db.Database.GetWatchCount(ctx, videoID)
+	if err != nil {
+		return 0, err
+	}
+	return int(watchCount), nil
+}
+
+func (i *Infrastructure) IncrementWatchCount(ctx context.Context, videoID string) (int, error) {
+	_, err := i.db.Database.IncrementWatchCount(ctx, videoID)
+	if err != nil {
+		return 0, err
+	}
+
+	watchCount, err := i.db.Database.GetWatchCount(ctx, videoID)
+	if err != nil {
+		return 0, err
+	}
+	return int(watchCount), nil
+}

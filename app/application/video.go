@@ -67,3 +67,11 @@ func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo
 
 	return videoResponse, nil
 }
+
+func (a *Application) GetWatchCount(ctx context.Context, videoID string) (int, error) {
+	return a.Video.videoRepository.GetWatchCount(ctx, videoID)
+}
+
+func (a *Application) IncrementWatchCount(ctx context.Context, videoID string) (int, error) {
+	return a.Video.videoRepository.IncrementWatchCount(ctx, videoID)
+}
