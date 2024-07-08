@@ -38,6 +38,12 @@ func (s *VideoService) Video(ctx context.Context, id *video_grpc.VideoID) (*vide
 		Title:             video.Title,
 		ThumbnailImageUrl: video.ThumbnailImageURL,
 		Description:       *video.Description,
+		Tags:              video.Tags,
+		WatchCount:        int32(video.WatchCount),
+		Private:           video.IsPrivate,
+		Adult:             video.IsAdult,
+		ExternalCutout:    video.IsExternalCutout,
+		IsAd:              video.IsAd,
 		CreatedAt:         timestamppb.New(video.CreatedAt),
 		UpdatedAt:         timestamppb.New(video.UpdatedAt),
 		UserId:            video.UploaderID,
@@ -69,6 +75,7 @@ func (s *VideoService) Videos(ctx context.Context, _ *empty.Empty) (*video_grpc.
 			UpdatedAt:         timestamppb.New(video.UpdatedAt),
 			UserId:            video.UploaderID,
 			Tags:              video.Tags,
+			WatchCount:        int32(video.WatchCount),
 			Private:           video.IsPrivate,
 			Adult:             video.IsAdult,
 			ExternalCutout:    video.IsExternalCutout,
@@ -99,6 +106,7 @@ func (s *VideoService) VideosByUserID(ctx context.Context, id *video_grpc.VideoU
 			UpdatedAt:         timestamppb.New(video.UpdatedAt),
 			UserId:            video.UploaderID,
 			Tags:              video.Tags,
+			WatchCount:        int32(video.WatchCount),
 			Private:           video.IsPrivate,
 			Adult:             video.IsAdult,
 			ExternalCutout:    video.IsExternalCutout,
@@ -251,4 +259,37 @@ func (s *VideoService) UploadVideo(stream video_grpc.VideoService_UploadVideoSer
 	}
 
 	return nil
+}
+
+func (s *VideoService) WatchCount(ctx context.Context, id *video_grpc.WatchCountInput) (*video_grpc.WatchCountPayload, error) {
+	watchCount, err := s.usecase.GetWatchCount(ctx, id.VideoId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &video_grpc.WatchCountPayload{
+		Count: int32(watchCount),
+	}, nil
+}
+
+func (s *VideoService) IncrementWatchCount(ctx context.Context, input *video_grpc.IncrementWatchCountInput) (*video_grpc.WatchCountPayload, error) {
+	watchCount, err := s.usecase.IncrementWatchCount(ctx, input.VideoId, input.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &video_grpc.WatchCountPayload{
+		Count: int32(watchCount),
+	}, nil
+}
+
+func (s *VideoService) CutVideo(ctx context.Context, input *video_grpc.CutVideoInput) (*video_grpc.CutVideoPayload, error) {
+	url, err := s.usecase.CutVideo(ctx, input.VideoId, input.UserId, int(input.Start), int(input.End))
+	if err != nil {
+		return nil, err
+	}
+
+	return &video_grpc.CutVideoPayload{
+		VideoUrl: url,
+	}, nil
 }

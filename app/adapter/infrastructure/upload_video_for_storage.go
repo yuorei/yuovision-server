@@ -32,7 +32,8 @@ func (i *Infrastructure) UploadVideoForStorage(ctx context.Context, video *domai
 				}
 				return nil
 			}()
-			err := uploadVideoForS3(path)
+			bucketName := "video"
+			err := uploadVideoForS3(path, bucketName)
 			if err != nil {
 				return err
 			}
@@ -49,7 +50,7 @@ func (i *Infrastructure) UploadVideoForStorage(ctx context.Context, video *domai
 	return url, nil
 }
 
-func uploadVideoForS3(path string) error {
+func uploadVideoForS3(path, bucketName string) error {
 	ctx := context.Background()
 	accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
 	secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
@@ -77,8 +78,6 @@ func uploadVideoForS3(path string) error {
 		buckets[*b.Name] = struct{}{}
 	}
 
-	// create 'video' bucket if not exist
-	bucketName := "video"
 	if _, ok := buckets[bucketName]; !ok {
 		_, err = client.CreateBucket(ctx, &s3.CreateBucketInput{
 			Bucket: &bucketName,

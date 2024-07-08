@@ -498,6 +498,25 @@ func (q *Queries) GetVideoTags(ctx context.Context, videoID string) ([]Tag, erro
 	return items, nil
 }
 
+const getWatchCount = `-- name: GetWatchCount :one
+SELECT watch_count FROM video WHERE id = ?
+`
+
+func (q *Queries) GetWatchCount(ctx context.Context, id string) (int32, error) {
+	row := q.db.QueryRowContext(ctx, getWatchCount, id)
+	var watch_count int32
+	err := row.Scan(&watch_count)
+	return watch_count, err
+}
+
+const incrementWatchCount = `-- name: IncrementWatchCount :execresult
+UPDATE video SET watch_count = watch_count + 1 WHERE id = ?
+`
+
+func (q *Queries) IncrementWatchCount(ctx context.Context, id string) (sql.Result, error) {
+	return q.db.ExecContext(ctx, incrementWatchCount, id)
+}
+
 const subscribeChannel = `-- name: SubscribeChannel :execresult
 INSERT INTO subscription (user_id, channel_id) VALUES (?, ?)
 `
