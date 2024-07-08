@@ -26,6 +26,11 @@ func getFromRedis(ctx context.Context, client *redis.Client, key string, data an
 		if err != nil {
 			return false, err
 		}
+	case *WatchCountJsonType:
+		err = json.Unmarshal(bytes, v)
+		if err != nil {
+			return false, err
+		}
 	default:
 		return false, fmt.Errorf("invalid type")
 	}
@@ -39,10 +44,19 @@ func setToRedis(ctx context.Context, client *redis.Client, key string, expiratio
 		return err
 	}
 
-	var videos []*domain.Video
-	err = json.Unmarshal(bytes, &videos)
-	if err != nil {
-		return err
+	switch v := value.(type) {
+	case []*domain.Video:
+		err = json.Unmarshal(bytes, &v)
+		if err != nil {
+			return err
+		}
+	case *WatchCountJsonType:
+		err = json.Unmarshal(bytes, &v)
+		if err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("invalid type")
 	}
 
 	return client.Set(ctx, key, bytes, expiration).Err()

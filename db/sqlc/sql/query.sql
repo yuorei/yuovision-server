@@ -77,3 +77,9 @@ INSERT INTO tag (tag_name) VALUES (?);
 
 -- name: CreateComment :execresult
 INSERT INTO comment (id, video_id, text, user_id, created_at,updated_at) VALUES (?, ?, ?, ?, ?, ?);
+
+-- name: GetWatchCount :one
+SELECT watch_count FROM video WHERE id = ?;
+
+-- name: IncrementWatchCount :execresult
+UPDATE video SET watch_count = watch_count + 1 WHERE id = ?;
