@@ -215,10 +215,10 @@ func (i *Infrastructure) CutVideo(ctx context.Context, videoID, userID string, s
 	}
 
 	key := videoID + domain.IDSeparator + domain.NewUUID() + ".mp4"
-	imagePath := "cut-video" + "/" + key
+	outPath := "cut-video" + "/" + key
 	url := fmt.Sprintf("%s/%s/output_%s.m3u8", os.Getenv("AWS_S3_URL"), bucketName, videoID)
 
-	cmd := exec.Command("ffmpeg", "-ss", fmt.Sprintf("%d", start), "-i", url, "-to", fmt.Sprintf("%d", end-start), "-c", "copy", imagePath)
+	cmd := exec.Command("ffmpeg", "-ss", fmt.Sprintf("%d", start), "-i", url, "-to", fmt.Sprintf("%d", end-start), "-c", "copy", outPath)
 
 	log.Println(cmd.Args)
 	result, err := cmd.CombinedOutput()
@@ -228,7 +228,7 @@ func (i *Infrastructure) CutVideo(ctx context.Context, videoID, userID string, s
 	}
 
 	uploadbucketName := "cut-video"
-	err = uploadVideoForS3(imagePath, uploadbucketName)
+	err = uploadVideoForS3(outPath, uploadbucketName)
 	if err != nil {
 		return "", err
 	}
