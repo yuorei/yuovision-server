@@ -21,6 +21,7 @@ type (
 		IsAd              bool
 		CreatedAt         time.Time
 		UpdatedAt         time.Time
+		WatchCount        int
 	}
 
 	UploadVideo struct {
@@ -65,15 +66,22 @@ func NewVideoID() string {
 	return fmt.Sprintf("%s%s%s", "video", IDSeparator, NewUUID())
 }
 
-func NewVideo(id string, videoURL string, thumbnailImageURL string, title string, description *string, uploaderID string, createdAt time.Time) *Video {
+func NewVideo(id string, videoURL string, thumbnailImageURL string, title string, description *string, tags []string, watchCount int, private bool, adult bool, externalCutout bool, isAd bool, uploaderID string, createdAt time.Time, updatedAt time.Time) *Video {
 	return &Video{
 		ID:                id,
 		VideoURL:          videoURL,
 		ThumbnailImageURL: thumbnailImageURL,
 		Title:             title,
 		Description:       description,
+		Tags:              tags,
+		IsPrivate:         private,
+		IsAdult:           adult,
+		IsExternalCutout:  externalCutout,
+		IsAd:              isAd,
 		UploaderID:        uploaderID,
 		CreatedAt:         createdAt,
+		UpdatedAt:         updatedAt,
+		WatchCount:        watchCount,
 	}
 }
 

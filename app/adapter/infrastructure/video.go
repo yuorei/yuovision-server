@@ -30,7 +30,8 @@ func (i *Infrastructure) GetVideosFromDB(ctx context.Context) ([]*domain.Video, 
 	}
 
 	for _, dbVideo := range dbVideos {
-		video := domain.NewVideo(dbVideo.ID, dbVideo.VideoUrl, dbVideo.ThumbnailImageUrl, dbVideo.Title, &dbVideo.Description.String, dbVideo.UploaderID, dbVideo.CreatedAt)
+		video := domain.NewVideo(dbVideo.ID, dbVideo.VideoUrl, dbVideo.ThumbnailImageUrl, dbVideo.Title, &dbVideo.Description.String, []string{}, int(dbVideo.WatchCount), dbVideo.IsPrivate, dbVideo.IsAdult, dbVideo.IsExternalCutout, dbVideo.IsAd, dbVideo.UploaderID, dbVideo.CreatedAt, dbVideo.UpdatedAt)
+
 		for _, tag := range tags {
 			if tag.VideoID == dbVideo.ID {
 				video.Tags = append(video.Tags, tag.TagName)
@@ -56,7 +57,7 @@ func (i *Infrastructure) GetVideosByUserIDFromDB(ctx context.Context, userID str
 		return nil, err
 	}
 	for _, dbVideo := range dbVideos {
-		video := domain.NewVideo(dbVideo.ID, dbVideo.VideoUrl, dbVideo.ThumbnailImageUrl, dbVideo.Title, &dbVideo.Description.String, dbVideo.UploaderID, dbVideo.CreatedAt)
+		video := domain.NewVideo(dbVideo.ID, dbVideo.VideoUrl, dbVideo.ThumbnailImageUrl, dbVideo.Title, &dbVideo.Description.String, []string{}, int(dbVideo.WatchCount), dbVideo.IsPrivate, dbVideo.IsAdult, dbVideo.IsExternalCutout, dbVideo.IsAd, dbVideo.UploaderID, dbVideo.CreatedAt, dbVideo.UpdatedAt)
 		for _, tag := range tags {
 			if tag.VideoID == dbVideo.ID {
 				video.Tags = append(video.Tags, tag.TagName)
@@ -78,7 +79,7 @@ func (i *Infrastructure) GetVideoFromDB(ctx context.Context, id string) (*domain
 		return nil, err
 	}
 
-	video := domain.NewVideo(dbVideo.ID, dbVideo.VideoUrl, dbVideo.ThumbnailImageUrl, dbVideo.Title, &dbVideo.Description.String, dbVideo.UploaderID, dbVideo.CreatedAt)
+	video := domain.NewVideo(dbVideo.ID, dbVideo.VideoUrl, dbVideo.ThumbnailImageUrl, dbVideo.Title, &dbVideo.Description.String, []string{}, int(dbVideo.WatchCount), dbVideo.IsPrivate, dbVideo.IsAdult, dbVideo.IsExternalCutout, dbVideo.IsAd, dbVideo.UploaderID, dbVideo.CreatedAt, dbVideo.UpdatedAt)
 	for _, tag := range tags {
 		video.Tags = append(video.Tags, tag.TagName)
 	}
@@ -206,9 +207,9 @@ func (i *Infrastructure) ChechWatchCount(ctx context.Context, videoID, userID st
 	return true, nil
 }
 
-func (i *Infrastructure) CutVideo(ctx context.Context, videoID, userID string, int, end int) (string, error) {
+func (i *Infrastructure) CutVideo(ctx context.Context, videoID, userID string, start, end int) (string, error) {
 	const bucketName = "video"
-	err := os.Mkdir("cut-video", 0755)
+	err := os.MkdirAll("cut-video", 0755)
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp dir: %w", err)
 	}
@@ -217,7 +218,8 @@ func (i *Infrastructure) CutVideo(ctx context.Context, videoID, userID string, i
 	imagePath := "cut-video" + "/" + key
 	url := fmt.Sprintf("%s/%s/output_%s.m3u8", os.Getenv("AWS_S3_URL"), bucketName, videoID)
 
-	cmd := exec.Command("ffmpeg", "-ss", "00:00:00", "-t", "00:00:10", "-i", url, "-c", "copy", imagePath)
+	cmd := exec.Command("ffmpeg", "-ss", fmt.Sprintf("%d", start), "-i", url, "-to", fmt.Sprintf("%d", end-start), "-c", "copy", imagePath)
+
 	log.Println(cmd.Args)
 	result, err := cmd.CombinedOutput()
 	log.Println(string(result))
