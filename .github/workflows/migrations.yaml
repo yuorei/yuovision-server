@@ -1,6 +1,8 @@
-name: Migrations Atlas
+name: Check Migrations Atlas
 on:
-  [push]
+  pull_request:
+    paths:
+      - 'db/atlas/*'
 
 jobs:
   push:
