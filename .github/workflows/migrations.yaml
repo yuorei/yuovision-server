@@ -8,9 +8,8 @@ jobs:
       mysql:
         image: mysql:latest
         env:
-          MYSQL_DATABASE: dev
-          MYSQL_ROOT_PASSWORD: pass
           MYSQL_DATABASE: yuovision
+          MYSQL_ROOT_PASSWORD: pass
         ports:
           - 3306:3306
         options: >-
