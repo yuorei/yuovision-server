@@ -35,5 +35,5 @@ jobs:
           MYSQL_DATABASE: dev
         run: |
           atlas schema apply \
-          -u "mysql://$${MYSQL_USER}:$${MYSQL_PASSWORD}@$${MYSQL_HOST}:$${MYSQL_PORT}/$${MYSQL_DATABASE}" \
+          -u "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}" \
           --to file://db/atlas/schema.hcl
