@@ -133,10 +133,20 @@ func (i *Infrastructure) UploadImageForStorage(ctx context.Context, id string) (
 func (i *Infrastructure) CreateThumbnail(ctx context.Context, id string) error {
 	const bucketName = "video"
 	imagePath := id + ".webp"
+	tmpVideoPath := id + ".mp4"
+	defer func() error {
+		err := os.Remove(tmpVideoPath)
+		if err != nil {
+			return err
+		}
+		return nil
+	}()
 
-	url := fmt.Sprintf("%s/%s/output_%s.m3u8", os.Getenv("AWS_S3_URL"), bucketName, id)
 	// S3から取得HLS
-	cmd := exec.Command("ffmpeg", "-i", url, "-ss", "00:00:00", "-vframes", "1", imagePath)
+	// 処理を2回に分けているのはこの方法が早いため
+	// 分けないとffmpegが全てのファイルをダウンロードしてから処理を行うため時間がかかってしまう
+	url := fmt.Sprintf("%s/%s/output_%s.m3u8", os.Getenv("AWS_S3_URL"), bucketName, id)
+	cmd := exec.Command("ffmpeg", "-ss", "00:00:00", "-t", "1", "-i", url, tmpVideoPath)
 	log.Println(cmd.Args)
 	result, err := cmd.CombinedOutput()
 	log.Println(string(result))
@@ -144,6 +154,13 @@ func (i *Infrastructure) CreateThumbnail(ctx context.Context, id string) error {
 		return fmt.Errorf("failed to execute ffmpeg command: %w", err)
 	}
 
-	// os.Remove(tempMp4)
+	cmd = exec.Command("ffmpeg", "-i", tmpVideoPath, "-vframes", "1", imagePath)
+	log.Println(cmd.Args)
+	result, err = cmd.CombinedOutput()
+	log.Println(string(result))
+	if err != nil {
+		return fmt.Errorf("failed to execute ffmpeg command: %w", err)
+	}
+
 	return nil
 }
