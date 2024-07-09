@@ -1,0 +1,39 @@
+name: Migrations Atlas
+on:
+  [push]
+
+jobs:
+  push:
+    services:
+      mysql:
+        image: mysql:latest
+        env:
+          MYSQL_DATABASE: dev
+          MYSQL_ROOT_PASSWORD: pass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -ppass"
+          --health-interval 10s
+          --health-start-period 10s
+          --health-timeout 5s
+          --health-retries 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Atlas CLI
+        run: curl -sSf https://atlasgo.sh | sh
+
+      - name: Apply Atlas schema
+        env:
+          MYSQL_USER: root
+          MYSQL_PASSWORD: pass
+          MYSQL_HOST: localhost
+          MYSQL_PORT: 3306
+          MYSQL_DATABASE: dev
+        run: |
+          atlas schema apply \
+          -u "mysql://$${MYSQL_USER}:$${MYSQL_PASSWORD}@$${MYSQL_HOST}:$${MYSQL_PORT}/$${MYSQL_DATABASE}" \
+          --to file://db/atlas/schema.hcl
