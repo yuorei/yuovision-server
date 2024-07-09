@@ -34,6 +34,6 @@ jobs:
           MYSQL_PORT: 3306
           MYSQL_DATABASE: yuovision
         run: |
-          atlas schema apply \
+          atlas schema apply --auto-approve \
           -u "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}" \
           --to file://db/atlas/schema.hcl
