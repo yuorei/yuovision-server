@@ -37,8 +37,7 @@ func (i *Infrastructure) GetVideosFromDB(ctx context.Context) ([]*domain.Video, 
 				video.Tags = append(video.Tags, tag.TagName)
 			}
 		}
-		video.CreatedAt = time.Now()
-		video.UpdatedAt = time.Now()
+
 		videos = append(videos, video)
 	}
 
