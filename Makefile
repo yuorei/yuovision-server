@@ -24,6 +24,12 @@ migration:
 	-u "mysql://$${MYSQL_USER}:$${MYSQL_PASSWORD}@$${MYSQL_HOST}:$${MYSQL_PORT}/$${MYSQL_DATABASE}" \
 	--to file://db/atlas/schema.hcl
 
+migration:
+	set -a && source .env.dev && set +a&&\
+	atlas schema apply \
+	-u "mysql://$${MYSQL_USER}:$${MYSQL_PASSWORD}@$${MYSQL_HOST}:$${MYSQL_PORT}/$${MYSQL_DATABASE}" \
+	--to file://db/atlas/schema.hcl
+
 schema_output:
 	mkdir -p db/atlas &&\
 	set -a && source .env.prod && set +a&&\
@@ -42,16 +48,8 @@ lint:
 
 prod:
 	set -a && source .env.prod && set +a&&\
-	PORT=$${PORT} \
-	AWS_ACCESS_KEY_ID=$${AWS_ACCESS_KEY_ID} \
-	AWS_SECRET_ACCESS_KEY=$${AWS_SECRET_ACCESS_KEY} \
-	AWS_S3_ENDPOINT=$${AWS_S3_ENDPOINT} \
-	AWS_S3_URL=$${AWS_S3_URL} \
-	AUTH_URL=$${AUTH_URL} \
-	REDIS_ADDRESS=$${REDIS_ADDRESS} \
-	MYSQL_HOST=$${MYSQL_HOST} \
-	MYSQL_PORT=$${MYSQL_PORT} \
-	MYSQL_DATABASE=$${MYSQL_DATABASE} \
-	MYSQL_PASSWORD=$${MYSQL_PASSWORD} \
-	MYSQL_USER=$${MYSQL_USER} \
+	go run main.go
+
+dev:
+	set -a && source .env.dev && set +a&&\
 	go run main.go
