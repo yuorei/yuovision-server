@@ -24,7 +24,7 @@ migration:
 	-u "mysql://$${MYSQL_USER}:$${MYSQL_PASSWORD}@$${MYSQL_HOST}:$${MYSQL_PORT}/$${MYSQL_DATABASE}" \
 	--to file://db/atlas/schema.hcl
 
-migration:
+migration_dev:
 	set -a && source .env.dev && set +a&&\
 	atlas schema apply \
 	-u "mysql://$${MYSQL_USER}:$${MYSQL_PASSWORD}@$${MYSQL_HOST}:$${MYSQL_PORT}/$${MYSQL_DATABASE}" \
