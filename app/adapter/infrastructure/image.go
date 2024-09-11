@@ -145,7 +145,7 @@ func (i *Infrastructure) CreateThumbnail(ctx context.Context, id string) error {
 	// S3から取得HLS
 	// 処理を2回に分けているのはこの方法が早いため
 	// 分けないとffmpegが全てのファイルをダウンロードしてから処理を行うため時間がかかってしまう
-	url := fmt.Sprintf("%s/%s/output_%s.m3u8", os.Getenv("AWS_S3_URL"), bucketName, id)
+	url := fmt.Sprintf("%s/%s/%s/output_%s.m3u8", os.Getenv("AWS_S3_URL"), bucketName, id, id)
 	cmd := exec.Command("ffmpeg", "-ss", "00:00:00", "-t", "1", "-i", url, tmpVideoPath)
 	log.Println(cmd.Args)
 	result, err := cmd.CombinedOutput()
