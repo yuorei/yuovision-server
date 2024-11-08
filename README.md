@@ -28,8 +28,8 @@ YuoVisionは、動画の視聴とアップロードが可能な動画配信プ�
 ### ストリーミング
 - HLS
 ### DB
-- MongoDB
-  - ドキュメント型NoSQLです。入れ子や配列も保存できて柔軟な構造とインデックスができます。 
+- MySQL
+  - RDBMSです。 
 - Redis
   - キャッシュサーバとして動かしています。動画一覧を取得した際に1分間キャッシュとして保存します。
 ### ストレージ
@@ -48,7 +48,8 @@ YuoVisionは、動画の視聴とアップロードが可能な動画配信プ�
 - [kolesa-team/go-webp](https://github.com/kolesa-team/go-webp)
   - webpに変換するライブラリです。
 ## 構成図
-<img width="662" alt="image" src="https://github.com/yuorei/yuovision-server/assets/108039575/0b128cac-967a-4871-8812-9f172b007789">
+![image](https://github.com/user-attachments/assets/8aa0525c-6748-4917-b267-e90e8b6cad2e)
+
 
 ## 工夫したところ
 ### ストリーミングになっている
@@ -58,8 +59,6 @@ HLS(HTTP Live Streaming)を使いました。ストリーミング
 ### アーキテクチャ
 - クリーンアーキテクチャで構築しました。DBなど外部のものに依存しないような設計にしました。
 ### 設計
-- MongoDB
-  - 正規化をすることなくなるべく関連する情報を一つのドキュメントに入れました。
 - GraphQL
   - スキーマ設計は1回で必要な情報を取得できるようにしました。
 ### CI
