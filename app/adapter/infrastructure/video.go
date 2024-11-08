@@ -1,9 +1,11 @@
 package infrastructure
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -234,4 +236,33 @@ func (i *Infrastructure) CutVideo(ctx context.Context, videoID, userID string, s
 
 	cutURL := fmt.Sprintf("%s/%s/%s", os.Getenv("AWS_S3_URL"), uploadbucketName, key)
 	return cutURL, nil
+}
+
+func (i *Infrastructure) ValidationVideo(video io.ReadSeeker) error {
+	if video == nil {
+		return fmt.Errorf("video is nil")
+	}
+
+	// MP4ファイルのシグネチャとして 'ftyp' を確認
+	const ftyp = "ftyp"
+
+	// 先頭の12バイトだけ読み込む（ftypボックスの確認に十分な範囲）
+	header := make([]byte, 12)
+	_, err := video.Read(header)
+	if err != nil {
+		return err
+	}
+
+	// ReadSeekerを先頭に戻す
+	_, err = video.Seek(0, io.SeekStart)
+	if err != nil {
+		return err
+	}
+
+	// ヘッダの4バイト目から'ftyp'が存在するかチェック
+	if bytes.Contains(header[4:], []byte(ftyp)) {
+		return nil
+	}
+
+	return fmt.Errorf("invalid video file")
 }
