@@ -7,21 +7,19 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-
-	"github.com/yuorei/video-server/app/domain"
 )
 
-func (i *Infrastructure) ConvertVideoHLS(ctx context.Context, video *domain.VideoFile) error {
+func (i *Infrastructure) ConvertVideoHLS(ctx context.Context, videoID string) error {
 	// HLS変換の実行
-	outputDir := "output/" + video.ID
+	outputDir := "output/" + videoID
 	err := os.MkdirAll(outputDir, 0755)
 	if err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
-	output := "output_" + video.ID + ".m3u8"
+	output := "output_" + videoID + ".m3u8"
 	outputHLS := filepath.Join(outputDir, output)
-	tempMp4 := filepath.Join("temp", video.ID+".mp4")
+	tempMp4 := filepath.Join("temp", videoID+".mp4")
 	cmd := exec.Command("ffmpeg", "-i", tempMp4, "-codec:", "copy", "-start_number", "0", "-hls_time", "10", "-hls_list_size", "0", "-f", "hls", outputHLS, "-y")
 	log.Println(cmd.Args)
 	result, err := cmd.CombinedOutput()
