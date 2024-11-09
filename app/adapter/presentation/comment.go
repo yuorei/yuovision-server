@@ -3,6 +3,7 @@ package presentation
 import (
 	"context"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/yuorei/video-server/app/application"
 	"github.com/yuorei/video-server/app/domain"
 	"github.com/yuorei/video-server/yuovision-proto/go/video/video_grpc"
@@ -23,6 +24,7 @@ type CommentService struct {
 func (s *CommentService) CommentsByVideo(ctx context.Context, id *video_grpc.CommentsByVideoInput) (*video_grpc.CommentsResponse, error) {
 	comments, err := s.usecase.GetCommentsByVideoID(ctx, id.VideoId)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 
@@ -52,6 +54,7 @@ func (s *CommentService) PostComment(ctx context.Context, input *video_grpc.Post
 	comment := domain.NewPostComment(commentID, input.VideoId, input.UserId, input.Name, input.Text)
 	comment, err := s.usecase.PostComment(ctx, comment)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 

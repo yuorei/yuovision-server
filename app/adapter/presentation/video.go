@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/getsentry/sentry-go"
+
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/yuorei/video-server/app/application"
 	"github.com/yuorei/video-server/app/domain"
@@ -29,6 +31,7 @@ type VideoService struct {
 func (s *VideoService) Video(ctx context.Context, id *video_grpc.VideoID) (*video_grpc.VideoPayload, error) {
 	video, err := s.usecase.GetVideo(ctx, id.Id)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 
@@ -53,6 +56,7 @@ func (s *VideoService) Video(ctx context.Context, id *video_grpc.VideoID) (*vide
 func (s *VideoService) Videos(ctx context.Context, _ *empty.Empty) (*video_grpc.VideosResponse, error) {
 	videos, err := s.usecase.GetVideos(ctx)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 
@@ -91,6 +95,7 @@ func (s *VideoService) Videos(ctx context.Context, _ *empty.Empty) (*video_grpc.
 func (s *VideoService) VideosByUserID(ctx context.Context, id *video_grpc.VideoUserID) (*video_grpc.VideosResponse, error) {
 	videos, err := s.usecase.GetVideosByUserID(ctx, id.Id)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 
@@ -130,6 +135,7 @@ func (s *VideoService) UploadThumbnail(stream video_grpc.VideoService_UploadThum
 			break
 		}
 		if err != nil {
+			sentry.CaptureException(err)
 			return err
 		}
 
@@ -138,6 +144,7 @@ func (s *VideoService) UploadThumbnail(stream video_grpc.VideoService_UploadThum
 			case *video_grpc.UploadThumbnailInput_ThumbnailImage:
 				_, err := imageFile.Write(x.ThumbnailImage)
 				if err != nil {
+					sentry.CaptureException(err)
 					return err
 				}
 			case *video_grpc.UploadThumbnailInput_Meta:
@@ -154,6 +161,7 @@ func (s *VideoService) UploadThumbnail(stream video_grpc.VideoService_UploadThum
 						}
 					}()
 					if err != nil {
+						sentry.CaptureException(err)
 						return err
 					}
 					defer imageFile.Close()
@@ -167,6 +175,7 @@ func (s *VideoService) UploadThumbnail(stream video_grpc.VideoService_UploadThum
 	thumbnail := domain.NewThumbnailImage(id, contentType)
 	err := s.usecase.UploadThumbnail(ctx, thumbnail)
 	if err != nil {
+		sentry.CaptureException(err)
 		return err
 	}
 
@@ -176,6 +185,7 @@ func (s *VideoService) UploadThumbnail(stream video_grpc.VideoService_UploadThum
 		},
 	)
 	if err != nil {
+		sentry.CaptureException(err)
 		return err
 	}
 	return nil
@@ -193,6 +203,7 @@ func (s *VideoService) UploadVideo(stream video_grpc.VideoService_UploadVideoSer
 			break
 		}
 		if err != nil {
+			sentry.CaptureException(err)
 			return err
 		}
 
@@ -201,22 +212,26 @@ func (s *VideoService) UploadVideo(stream video_grpc.VideoService_UploadVideoSer
 			case *video_grpc.UploadVideoInput_Video:
 				_, err := videoFile.Write(x.Video)
 				if err != nil {
+					sentry.CaptureException(err)
 					return err
 				}
 			case *video_grpc.UploadVideoInput_Meta:
 				meta = x.Meta
 				id = x.Meta.Id
 				if id == "" {
+					sentry.CaptureException(fmt.Errorf("id is required"))
 					return fmt.Errorf("id is required")
 				}
 				tempDir := "temp"
 				err := os.MkdirAll(tempDir, 0755)
 				if err != nil {
+					sentry.CaptureException(err)
 					return err
 				}
 				tempMp4 := filepath.Join(tempDir, id+".mp4")
 				videoFile, err = os.Create(tempMp4)
 				if err != nil {
+					sentry.CaptureException(err)
 					return err
 				}
 				defer videoFile.Close()
@@ -234,6 +249,7 @@ func (s *VideoService) UploadVideo(stream video_grpc.VideoService_UploadVideoSer
 	video := domain.NewUploadVideo(id, videoFile, meta.Title, &meta.Description, meta.Tags, meta.Adult, meta.Private, meta.ExternalCutout, meta.IsAd)
 	uploadVideo, err := s.usecase.UploadVideo(ctx, video, meta.UserId, meta.ThumbnailImageUrl)
 	if err != nil {
+		sentry.CaptureException(err)
 		return err
 	}
 
@@ -255,6 +271,7 @@ func (s *VideoService) UploadVideo(stream video_grpc.VideoService_UploadVideoSer
 		},
 	)
 	if err != nil {
+		sentry.CaptureException(err)
 		return err
 	}
 
@@ -264,6 +281,7 @@ func (s *VideoService) UploadVideo(stream video_grpc.VideoService_UploadVideoSer
 func (s *VideoService) WatchCount(ctx context.Context, id *video_grpc.WatchCountInput) (*video_grpc.WatchCountPayload, error) {
 	watchCount, err := s.usecase.GetWatchCount(ctx, id.VideoId)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 
@@ -275,6 +293,7 @@ func (s *VideoService) WatchCount(ctx context.Context, id *video_grpc.WatchCount
 func (s *VideoService) IncrementWatchCount(ctx context.Context, input *video_grpc.IncrementWatchCountInput) (*video_grpc.WatchCountPayload, error) {
 	watchCount, err := s.usecase.IncrementWatchCount(ctx, input.VideoId, input.UserId)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 
@@ -286,6 +305,7 @@ func (s *VideoService) IncrementWatchCount(ctx context.Context, input *video_grp
 func (s *VideoService) CutVideo(ctx context.Context, input *video_grpc.CutVideoInput) (*video_grpc.CutVideoPayload, error) {
 	url, err := s.usecase.CutVideo(ctx, input.VideoId, input.UserId, int(input.Start), int(input.End))
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 
