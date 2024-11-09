@@ -17,7 +17,7 @@ import (
 )
 
 func (i *Infrastructure) UploadVideoForStorage(ctx context.Context, video *domain.VideoFile) (string, error) {
-	err := filepath.Walk("output", func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk("output/"+video.ID, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -46,7 +46,7 @@ func (i *Infrastructure) UploadVideoForStorage(ctx context.Context, video *domai
 	}
 
 	bucketName := "video"
-	url := fmt.Sprintf("%s/%s/output_%s.m3u8", os.Getenv("AWS_S3_URL"), bucketName, video.ID)
+	url := fmt.Sprintf("%s/%s/%s/output_%s.m3u8", os.Getenv("AWS_S3_URL"), bucketName, video.ID, video.ID)
 	return url, nil
 }
 
@@ -96,7 +96,7 @@ func uploadVideoForS3(path, bucketName string) error {
 	// put object
 	_, err = client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
-		Key:    aws.String(strings.Split(path, "/")[1]),
+		Key:    aws.String(strings.Split(path, "/")[1] + "/" + strings.Split(path, "/")[2]),
 		Body:   file,
 		ACL:    types.ObjectCannedACLPublicRead,
 	})

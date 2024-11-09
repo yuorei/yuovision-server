@@ -3,6 +3,7 @@ package presentation
 import (
 	"context"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/yuorei/video-server/app/application"
 	"github.com/yuorei/video-server/app/domain"
 	"github.com/yuorei/video-server/yuovision-proto/go/video/video_grpc"
@@ -22,6 +23,7 @@ type UserService struct {
 func (s *UserService) User(ctx context.Context, input *video_grpc.UserID) (*video_grpc.UserPayload, error) {
 	user, err := s.usecase.UserInputPort.GetUser(ctx, input.Id)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 	return &video_grpc.UserPayload{
@@ -38,6 +40,7 @@ func (s *UserService) RegisterUser(ctx context.Context, input *video_grpc.UserIn
 	user := domain.NewUser(input.Id, input.Name, input.ProfileImageUrl, input.SubscribeChannelIds, input.IsSubscribed, input.Role.String())
 	user, err := s.usecase.UserInputPort.RegisterUser(ctx, user)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 
@@ -55,6 +58,7 @@ func (s *UserService) SubscribeChannel(ctx context.Context, input *video_grpc.Su
 	subscribeChannel := domain.NewSubscribeChannel(input.UserId, input.ChannelId)
 	subscribeChannel, err := s.usecase.UserInputPort.SubscribeChannel(ctx, subscribeChannel)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 
@@ -67,6 +71,7 @@ func (s *UserService) UnSubscribeChannel(ctx context.Context, input *video_grpc.
 	subscribeChannel := domain.NewSubscribeChannel(input.UserId, input.ChannelId)
 	subscribeChannel, err := s.usecase.UserInputPort.UnSubscribeChannel(ctx, subscribeChannel)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 
