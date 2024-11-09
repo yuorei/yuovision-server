@@ -3,6 +3,7 @@ package router
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -17,6 +18,8 @@ import (
 	"github.com/yuorei/video-server/app/adapter/infrastructure"
 	"github.com/yuorei/video-server/app/adapter/presentation"
 	"github.com/yuorei/video-server/app/application"
+	flog "github.com/yuorei/video-server/app/driver/log"
+	"github.com/yuorei/video-server/app/driver/sentry"
 	"github.com/yuorei/video-server/yuovision-proto/go/video/video_grpc"
 )
 
@@ -26,6 +29,11 @@ const (
 )
 
 func NewRouter() {
+	flog.NewLog()
+	slog.Info("start server")
+
+	sentry.SentryInit()
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
