@@ -5,13 +5,10 @@ import (
 	"log"
 	"log/slog"
 	"net"
-	"net/http"
 	"os"
 
-	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
+	"github.com/newrelic/go-agent/v3/integrations/nrgrpc"
 	"github.com/oklog/run"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
@@ -19,6 +16,7 @@ import (
 	"github.com/yuorei/video-server/app/adapter/presentation"
 	"github.com/yuorei/video-server/app/application"
 	flog "github.com/yuorei/video-server/app/driver/log"
+	"github.com/yuorei/video-server/app/driver/newrelic"
 	"github.com/yuorei/video-server/app/driver/sentry"
 	"github.com/yuorei/video-server/yuovision-proto/go/video/video_grpc"
 )
@@ -45,20 +43,20 @@ func NewRouter() {
 	}
 
 	// Setup metrics
-	srvMetrics := grpcprom.NewServerMetrics(
-		grpcprom.WithServerHandlingTimeHistogram(
-			grpcprom.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
-		),
-	)
-	reg := prometheus.NewRegistry()
-	reg.MustRegister(srvMetrics)
-
+	// srvMetrics := grpcprom.NewServerMetrics(
+	// 	grpcprom.WithServerHandlingTimeHistogram(
+	// 		grpcprom.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
+	// 	),
+	// )
+	// reg := prometheus.NewRegistry()
+	// reg.MustRegister(srvMetrics)
+	newrelicApp := newrelic.NewRelic()
 	s := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			srvMetrics.UnaryServerInterceptor(),
+			nrgrpc.UnaryServerInterceptor(newrelicApp),
 		),
 		grpc.ChainStreamInterceptor(
-			srvMetrics.StreamServerInterceptor(),
+			nrgrpc.StreamServerInterceptor(newrelicApp),
 		),
 	)
 
@@ -70,7 +68,7 @@ func NewRouter() {
 	video_grpc.RegisterVideoServiceServer(s, presentation.NewVideoService(app))
 	reflection.Register(s)
 
-	srvMetrics.InitializeMetrics(s)
+	// srvMetrics.InitializeMetrics(s)
 
 	// Run gRPC server and HTTP server for Prometheus metrics
 	var g run.Group
@@ -82,23 +80,23 @@ func NewRouter() {
 		s.Stop()
 	})
 
-	httpSrv := &http.Server{Addr: httpAddr}
-	g.Add(func() error {
-		m := http.NewServeMux()
-		m.Handle("/metrics", promhttp.HandlerFor(
-			reg,
-			promhttp.HandlerOpts{
-				EnableOpenMetrics: true,
-			},
-		))
-		httpSrv.Handler = m
-		log.Printf("start HTTP server for Prometheus metrics: %v", httpAddr)
-		return httpSrv.ListenAndServe()
-	}, func(error) {
-		if err := httpSrv.Close(); err != nil {
-			log.Printf("failed to stop HTTP server: %v", err)
-		}
-	})
+	// httpSrv := &http.Server{Addr: httpAddr}
+	// g.Add(func() error {
+	// 	m := http.NewServeMux()
+	// 	m.Handle("/metrics", promhttp.HandlerFor(
+	// 		reg,
+	// 		promhttp.HandlerOpts{
+	// 			EnableOpenMetrics: true,
+	// 		},
+	// 	))
+	// 	httpSrv.Handler = m
+	// 	log.Printf("start HTTP server for Prometheus metrics: %v", httpAddr)
+	// 	return httpSrv.ListenAndServe()
+	// }, func(error) {
+	// 	if err := httpSrv.Close(); err != nil {
+	// 		log.Printf("failed to stop HTTP server: %v", err)
+	// 	}
+	// })
 
 	if err := g.Run(); err != nil {
 		log.Fatal(err)
