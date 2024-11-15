@@ -53,3 +53,6 @@ prod:
 dev:
 	set -a && source .env.dev && set +a&&\
 	go run main.go
+
+setup_dev:
+	./shell/setup_dev.sh
