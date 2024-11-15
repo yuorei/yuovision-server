@@ -50,12 +50,13 @@ func (a *Application) GetVideo(ctx context.Context, videoID string) (*domain.Vid
 
 func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo, userID string, imageURL string) (*domain.UploadVideoResponse, error) {
 	videofile := domain.NewVideoFile(video.ID, video.Video)
-	err := a.Video.videoRepository.ValidationVideo(videofile.Video)
-	if err != nil {
-		return nil, err
-	}
+	// TODO: 実際に動かしたらhaedが0バイトになりEOFになるため、コメントアウト
+	// err := a.Video.videoRepository.ValidationVideo(videofile.Video)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	err = a.Video.videoRepository.ConvertVideoHLS(ctx, videofile.ID)
+	err := a.Video.videoRepository.ConvertVideoHLS(ctx, videofile.ID)
 	if err != nil {
 		return nil, err
 	}
