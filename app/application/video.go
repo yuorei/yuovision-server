@@ -49,6 +49,11 @@ func (a *Application) GetVideo(ctx context.Context, videoID string) (*domain.Vid
 }
 
 func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo, userID string, imageURL string) (*domain.UploadVideoResponse, error) {
+	err := a.Video.videoRepository.CheckUploadAPIRateLimit(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
 	videofile := domain.NewVideoFile(video.ID, video.Video)
 	// TODO: 実際に動かしたらhaedが0バイトになりEOFになるため、コメントアウト
 	// err := a.Video.videoRepository.ValidationVideo(videofile.Video)
@@ -56,7 +61,7 @@ func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo
 	// 	return nil, err
 	// }
 
-	err := a.Video.videoRepository.ConvertVideoHLS(ctx, videofile.ID)
+	err = a.Video.videoRepository.ConvertVideoHLS(ctx, videofile.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +75,12 @@ func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo
 	if err != nil {
 		return nil, err
 	}
+
+	go func() {
+		err = a.Video.videoRepository.SetUploadAPIRateLimit(ctx, userID)
+		if err != nil {
+		}
+	}()
 
 	return videoResponse, nil
 }
