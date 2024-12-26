@@ -19,6 +19,33 @@ type WatchCountJsonType struct {
 	Count int `json:"count"`
 }
 
+type UploaderID struct {
+	ID string `json:"id"`
+}
+
+func (i *Infrastructure) CheckUploadAPIRateLimit(ctx context.Context, id string) error {
+	var uploaderID UploaderID
+	hit, err := getFromRedis(ctx, i.redis, "upload"+id, &uploaderID)
+	if err != nil {
+		return err
+	} else if hit {
+		return fmt.Errorf("upload api rate limit")
+	}
+
+	return nil
+}
+
+func (i *Infrastructure) SetUploadAPIRateLimit(ctx context.Context, id string) error {
+	// 24時間のアップロード回数を制限
+	err := setToRedis(ctx, i.redis, "upload"+id, 24*time.Hour, &UploaderID{
+		ID: id,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (i *Infrastructure) GetVideosFromDB(ctx context.Context) ([]*domain.Video, error) {
 	var videos []*domain.Video
 	dbVideos, err := i.db.Database.GetPublicAndNonAdultNonAdVideos(ctx)
