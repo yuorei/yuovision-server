@@ -25,18 +25,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-          service_account: ${{ steps.set-env.outputs.WIF_SA }}
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Configure Docker to use gcloud as a credential helper
-        run: gcloud auth configure-docker ${{ env.REGISTRY }}
-
       - name: Set environment specific variables
         id: set-env
         run: |
@@ -49,6 +37,18 @@ jobs:
             echo "PROJECT_ID=yuovision-dev-project" >> $GITHUB_OUTPUT
             echo "WIF_SA=github-actions-sa@yuovision-dev-project.iam.gserviceaccount.com" >> $GITHUB_OUTPUT
           fi
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ steps.set-env.outputs.WIF_SA }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker to use gcloud as a credential helper
+        run: gcloud auth configure-docker ${{ env.REGISTRY }}
 
       - name: Build Docker image
         run: |

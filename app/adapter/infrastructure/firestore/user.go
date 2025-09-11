@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"google.golang.org/api/iterator"
 	"github.com/yuorei/video-server/app/domain"
 )
 
@@ -84,7 +85,7 @@ func (r *UserRepository) GetAll(ctx context.Context) ([]*domain.User, error) {
 	for {
 		doc, err := iter.Next()
 		if err != nil {
-			if err.Error() == "iterator stopped" {
+			if err == iterator.Done {
 				break
 			}
 			return nil, fmt.Errorf("failed to iterate users: %w", err)
