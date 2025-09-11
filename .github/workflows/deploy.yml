@@ -50,6 +50,16 @@ jobs:
       - name: Configure Docker to use gcloud as a credential helper
         run: gcloud auth configure-docker ${{ env.REGISTRY }}
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Generate GraphQL code
+        run: |
+          go mod download
+          make gen
+
       - name: Build Docker image
         run: |
           docker build -t ${{ env.REGISTRY }}/${{ steps.set-env.outputs.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }} .
