@@ -53,7 +53,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.24'
 
       - name: Generate GraphQL code
         run: |
@@ -88,3 +88,9 @@ jobs:
           echo "URL: ${{ steps.get-url.outputs.url }}"
           echo "Environment: ${{ steps.set-env.outputs.ENVIRONMENT }}"
           echo "Image: ${{ env.REGISTRY }}/${{ steps.set-env.outputs.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+
+      - name: Check service logs
+        run: |
+          SERVICE_NAME="yuovision-${{ steps.set-env.outputs.ENVIRONMENT }}-server"
+          echo "Checking logs for service: $SERVICE_NAME"
+          gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=$SERVICE_NAME" --limit=20 --format="table(timestamp,severity,textPayload)" --freshness=5m

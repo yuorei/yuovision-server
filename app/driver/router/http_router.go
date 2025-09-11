@@ -39,9 +39,12 @@ func NewHTTPRouter() {
 
 	sentry.SentryInit()
 
-	port := os.Getenv("HTTP_PORT")
+	port := os.Getenv("PORT")
 	if port == "" {
-		port = defaultHTTPPort
+		port = os.Getenv("HTTP_PORT")
+		if port == "" {
+			port = defaultHTTPPort
+		}
 	}
 	slog.Info("using port", "port", port)
 
