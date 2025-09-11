@@ -96,11 +96,6 @@ func (r *videoResolver) ID(ctx context.Context, obj *model.Video) (string, error
 	return obj.ID, nil
 }
 
-// UploaderID is the resolver for the uploaderID field.
-func (r *videoResolver) UploaderID(ctx context.Context, obj *model.Video) (string, error) {
-	return obj.UploaderID, nil
-}
-
 // Uploader is the resolver for the uploader field.
 func (r *videoResolver) Uploader(ctx context.Context, obj *model.Video) (*model.User, error) {
 	return r.getUploaderForVideo(ctx, obj.UploaderID)
@@ -109,11 +104,6 @@ func (r *videoResolver) Uploader(ctx context.Context, obj *model.Video) (*model.
 // ID is the resolver for the id field.
 func (r *videoPayloadResolver) ID(ctx context.Context, obj *model.VideoPayload) (string, error) {
 	return obj.ID, nil
-}
-
-// UploaderID is the resolver for the uploaderID field.
-func (r *videoPayloadResolver) UploaderID(ctx context.Context, obj *model.VideoPayload) (string, error) {
-	return obj.UploaderID, nil
 }
 
 // Uploader is the resolver for the uploader field.
@@ -126,25 +116,6 @@ func (r *Resolver) Video() generated.VideoResolver { return &videoResolver{r} }
 
 // VideoPayload returns generated.VideoPayloadResolver implementation.
 func (r *Resolver) VideoPayload() generated.VideoPayloadResolver { return &videoPayloadResolver{r} }
-
-// getUploaderForVideo is a helper function to get uploader information by UploaderID
-// This eliminates code duplication between Video and VideoPayload uploader resolvers
-func (r *Resolver) getUploaderForVideo(ctx context.Context, uploaderID string) (*model.User, error) {
-	domainUser, err := r.app.User.GetUser(ctx, uploaderID)
-	if err != nil {
-		return nil, err
-	}
-
-	gqlUser := &model.User{
-		ID:              domainUser.ID,
-		Name:            domainUser.Name,
-		ProfileImageURL: domainUser.ProfileImageURL,
-		IsSubscribed:    domainUser.IsSubscribed,
-		Role:            model.Role(domainUser.Role),
-	}
-
-	return gqlUser, nil
-}
 
 type videoResolver struct{ *Resolver }
 type videoPayloadResolver struct{ *Resolver }
