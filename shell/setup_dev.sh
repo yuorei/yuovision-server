@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# MySQL コンテナを起動
-docker run --name mysql \
-  -e MYSQL_ROOT_PASSWORD=password \
-  -e MYSQL_DATABASE=yuovision \
-  -p 3306:3306 \
-  -d mysql:latest
-
 # MinIO コンテナを起動
 docker run --name minio \
   -p 9000:9000 \

@@ -2,46 +2,29 @@ package application
 
 import (
 	"context"
-	"os"
+	"io"
 
 	"github.com/yuorei/video-server/app/application/port"
-	"github.com/yuorei/video-server/app/domain"
 )
 
 type ImageUseCase struct {
-	imageRepository port.ImageRepository
+	imageRepo port.ImagePort
 }
 
-func NewImageUseCase(imageRepository port.ImageRepository) *ImageUseCase {
+func NewImageUseCase(imageRepo port.ImagePort) *ImageUseCase {
 	return &ImageUseCase{
-		imageRepository: imageRepository,
+		imageRepo: imageRepo,
 	}
 }
 
-func (a *Application) UploadThumbnail(ctx context.Context, thumbnail domain.ThumbnailImage) error {
-	videoID := thumbnail.ID
-	if thumbnail.ContentType != "" {
-		thumbnailImage, err := os.Open(videoID + "." + thumbnail.ContentType)
-		if err != nil {
-			return err
-		}
+func (uc *ImageUseCase) UploadImage(ctx context.Context, key string, file io.Reader, contentType string) (string, error) {
+	return uc.imageRepo.Upload(ctx, key, file, contentType)
+}
 
-		_, err = a.Image.imageRepository.ConvertThumbnailToWebp(ctx, thumbnailImage, thumbnail.ContentType, videoID)
-		if err != nil {
-			return err
-		}
-	} else {
-		err := a.Image.imageRepository.CreateThumbnail(ctx, videoID)
-		if err != nil {
-			return err
-		}
-	}
+func (uc *ImageUseCase) GetPresignedURL(ctx context.Context, key string) (string, error) {
+	return uc.imageRepo.GetPresignedURL(ctx, key)
+}
 
-	thumbnail = domain.NewThumbnailImage(videoID, thumbnail.ContentType)
-	_, err := a.Image.imageRepository.UploadImageForStorage(ctx, videoID)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (uc *ImageUseCase) GetUploadURL(ctx context.Context, key string, contentType string) (string, error) {
+	return uc.imageRepo.GetUploadURL(ctx, key, contentType)
 }

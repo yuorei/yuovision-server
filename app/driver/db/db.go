@@ -1,38 +1,27 @@
 package db
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
-	"log"
-	"os"
 
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/yuorei/video-server/db/sqlc"
+	"github.com/yuorei/video-server/app/driver/firebase"
 )
 
 type DB struct {
-	Database *sqlc.Queries
+	Firestore *firebase.FirestoreClient
 }
 
-func NewMySQLDB() *DB {
-	MYSQL_HOST := os.Getenv("MYSQL_HOST")
-	MYSQL_PORT := os.Getenv("MYSQL_PORT")
-	MYSQL_DATABASE := os.Getenv("MYSQL_DATABASE")
-	MYSQL_PASSWORD := os.Getenv("MYSQL_PASSWORD")
-	MYSQL_USER := os.Getenv("MYSQL_USER")
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", MYSQL_USER, MYSQL_PASSWORD, MYSQL_HOST, MYSQL_PORT, MYSQL_DATABASE)
-	db, err := sql.Open("mysql", dsn)
+func NewFirestoreDB(ctx context.Context, projectID, credentialsPath string) (*DB, error) {
+	firestoreClient, err := firebase.NewFirestoreClient(ctx, projectID, credentialsPath)
 	if err != nil {
-		log.Fatal("Error: ", err)
+		return nil, fmt.Errorf("failed to create Firestore client: %w", err)
 	}
-
-	if err := db.Ping(); err != nil {
-		log.Fatal("Error: ", err)
-	}
-
-	queries := sqlc.New(db)
 
 	return &DB{
-		Database: queries,
-	}
+		Firestore: firestoreClient,
+	}, nil
+}
+
+func (db *DB) Close() error {
+	return db.Firestore.Close()
 }

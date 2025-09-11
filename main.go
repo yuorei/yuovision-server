@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	router.NewRouter()
+	router.NewHTTPRouter()
 }
 
 func init() {

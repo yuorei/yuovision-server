@@ -8,27 +8,27 @@ import (
 )
 
 type UserUseCase struct {
-	userRepository port.UserRepository
+	userRepo port.UserPort
 }
 
-func NewUserUseCase(userRepository port.UserRepository) *UserUseCase {
+func NewUserUseCase(userRepo port.UserPort) *UserUseCase {
 	return &UserUseCase{
-		userRepository: userRepository,
+		userRepo: userRepo,
 	}
 }
 
-func (a *Application) GetUser(ctx context.Context, id string) (*domain.User, error) {
-	return a.User.userRepository.GetUserFromDB(ctx, id)
+func (uc *UserUseCase) GetUsers(ctx context.Context) ([]*domain.User, error) {
+	return uc.userRepo.GetAll(ctx)
 }
 
-func (a *Application) RegisterUser(ctx context.Context, user *domain.User) (*domain.User, error) {
-	return a.User.userRepository.InsertUser(ctx, user)
+func (uc *UserUseCase) GetUser(ctx context.Context, userID string) (*domain.User, error) {
+	return uc.userRepo.GetByID(ctx, userID)
 }
 
-func (a *Application) SubscribeChannel(ctx context.Context, subscribeChannel *domain.SubscribeChannel) (*domain.SubscribeChannel, error) {
-	return a.User.userRepository.AddSubscribeChannelForDB(ctx, subscribeChannel)
+func (uc *UserUseCase) CreateUser(ctx context.Context, user *domain.User) error {
+	return uc.userRepo.Create(ctx, user)
 }
 
-func (a *Application) UnSubscribeChannel(ctx context.Context, subscribeChannel *domain.SubscribeChannel) (*domain.SubscribeChannel, error) {
-	return a.User.userRepository.UnSubscribeChannelForDB(ctx, subscribeChannel)
+func (uc *UserUseCase) UpdateUser(ctx context.Context, user *domain.User) error {
+	return uc.userRepo.Update(ctx, user)
 }

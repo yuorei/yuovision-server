@@ -1,0 +1,49 @@
+type User implements Node {
+  id: ID! @goField(forceResolver: true)
+  name: String!
+  profileImageURL: String!
+  isSubscribed: Boolean!
+  role: Role!
+  subscribechannelids: [ID!]!
+  videos: [Video!]! @goField(forceResolver: true)
+}
+
+type UserPayload {
+  id: ID!
+  name: String!
+  profileImageURL: String!
+  isSubscribed: Boolean!
+  role: Role!
+  subscribechannelids: [ID!]!
+}
+
+input UserInput {
+  name: String!
+  isSubscribed: Boolean!
+  role: Role!
+}
+
+enum Role {
+  ADMIN
+  NORMAL
+}
+
+input subscribeChannelInput {
+  channelID: ID!
+}
+
+type SubscriptionPayload {
+  isSuccess: Boolean!
+}
+
+extend type Query {
+  users: [User!]!
+  user(id: ID!): User!
+  userByAuth: User!
+}
+
+extend type Mutation {
+  registerUser(input: UserInput!): UserPayload!
+  subscribeChannel(input: subscribeChannelInput): SubscriptionPayload!
+  unSubscribeChannel(input: subscribeChannelInput): SubscriptionPayload!
+}

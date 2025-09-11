@@ -12,15 +12,15 @@ type Application struct {
 }
 
 func NewApplication(infra *infrastructure.Infrastructure) *Application {
-	videoUseCase := NewVideoUseCase(infra)
-	imageUseCase := NewImageUseCase(infra)
-	userUseCase := NewUserUseCase(infra)
-	CommentUseCase := NewCommentUseCase(infra)
+	videoUseCase := NewVideoUseCase(infra.Video)
+	imageUseCase := NewImageUseCase(infra.Image)
+	userUseCase := NewUserUseCase(infra.User)
+	commentUseCase := NewCommentUseCase(infra.Comment)
 
 	return &Application{
 		Video:   videoUseCase,
 		Image:   imageUseCase,
 		User:    userUseCase,
-		Comment: CommentUseCase,
+		Comment: commentUseCase,
 	}
 }

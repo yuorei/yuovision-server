@@ -30,7 +30,9 @@ jobs:
           sudo apt-get install libwebp-dev
 
       - name: Install dependencies
-        run: go mod download
+        run: |
+          go mod download
+          go generate ./...
 
       - name: format による差分が出た場合に報告
         run: |

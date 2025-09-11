@@ -1,0 +1,73 @@
+type Video implements Node {
+  id: ID! @goField(forceResolver: true)
+  videoURL: String!
+  title: String!
+  thumbnailImageURL: String!
+  description: String
+  Tags: [String]
+  isPrivate: Boolean!
+  isAdult: Boolean!
+  isExternalCutout: Boolean!
+  watchCount: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  uploader: User! @goField(forceResolver: true)
+}
+
+type VideoPayload {
+  id: ID! @goField(forceResolver: true)
+  videoURL: String!
+  title: String!
+  thumbnailImageURL: String!
+  description: String
+  tags: [String]
+  isPrivate: Boolean!
+  isAdult: Boolean!
+  isExternalCutout: Boolean!
+  watchCount: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  uploader: User! @goField(forceResolver: true)
+}
+
+type IncrementWatchCountPayload {
+  watchCount: Int!
+}
+
+type CutVideoPayload {
+  cutVideoURL: String!
+}
+
+input UploadVideoInput {
+  video: Upload!
+  thumbnailImage: Upload
+  title: String!
+  description: String
+  tags: [String]
+  isPrivate: Boolean!
+  isAdult: Boolean!
+  isExternalCutout: Boolean!
+}
+
+input IncrementWatchCountInput {
+  VideoID: ID!
+  UserID: ID!
+}
+
+input CutVideoInput {
+  VideoID: ID!
+  StartTime: Int!
+  EndTime: Int!
+}
+
+extend type Query {
+  videos: [Video!]!
+  video(id: ID!): Video!
+  watchCount(videoID: ID!): Int!
+  cutVideo(input: CutVideoInput!): CutVideoPayload!
+}
+
+extend type Mutation {
+  UploadVideo(input: UploadVideoInput!): VideoPayload!
+  IncrementWatchCount(input: IncrementWatchCountInput!): IncrementWatchCountPayload!
+}
