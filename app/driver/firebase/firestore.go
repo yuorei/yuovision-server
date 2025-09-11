@@ -18,10 +18,22 @@ func (fc *FirestoreClient) Client() *firestore.Client {
 }
 
 func NewFirestoreClient(ctx context.Context, projectID, credentialsPath string) (*FirestoreClient, error) {
-	opt := option.WithCredentialsFile(credentialsPath)
-	app, err := firebase.NewApp(ctx, &firebase.Config{
-		ProjectID: projectID,
-	}, opt)
+	var app *firebase.App
+	var err error
+
+	if credentialsPath != "" {
+		// Use credentials file if provided
+		opt := option.WithCredentialsFile(credentialsPath)
+		app, err = firebase.NewApp(ctx, &firebase.Config{
+			ProjectID: projectID,
+		}, opt)
+	} else {
+		// Use Application Default Credentials (ADC) for Cloud Run
+		app, err = firebase.NewApp(ctx, &firebase.Config{
+			ProjectID: projectID,
+		})
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("error initializing firebase app: %v", err)
 	}

@@ -3,7 +3,6 @@ package firebase
 import (
 	"context"
 	"fmt"
-	"log"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
@@ -15,15 +14,25 @@ type AuthClient struct {
 }
 
 func NewAuthClient(credentialsPath string) (*AuthClient, error) {
-	opt := option.WithCredentialsFile(credentialsPath)
-	app, err := firebase.NewApp(context.Background(), nil, opt)
+	var app *firebase.App
+	var err error
+
+	if credentialsPath != "" {
+		// Use credentials file if provided
+		opt := option.WithCredentialsFile(credentialsPath)
+		app, err = firebase.NewApp(context.Background(), nil, opt)
+	} else {
+		// Use Application Default Credentials (ADC) for Cloud Run
+		app, err = firebase.NewApp(context.Background(), nil)
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("error initializing app: %v", err)
 	}
 
 	client, err := app.Auth(context.Background())
 	if err != nil {
-		log.Fatalf("error getting Auth client: %v\n", err)
+		return nil, fmt.Errorf("error getting Auth client: %v", err)
 	}
 
 	return &AuthClient{client: client}, nil
