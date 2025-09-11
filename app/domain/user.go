@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 type (
 	User struct {
 		ID                  string
@@ -8,6 +10,8 @@ type (
 		Subscribechannelids []string
 		IsSubscribed        bool
 		Role                string
+		CreatedAt           time.Time
+		UpdatedAt           time.Time
 	}
 
 	SubscribeChannel struct {
@@ -29,6 +33,8 @@ func NewUser(id, name, profileImageURL string, subscribechannelids []string, isS
 		Subscribechannelids: subscribechannelids,
 		IsSubscribed:        isSubscribed,
 		Role:                role,
+		CreatedAt:           time.Now(),
+		UpdatedAt:           time.Now(),
 	}
 }
 

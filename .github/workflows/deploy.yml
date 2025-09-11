@@ -1,0 +1,80 @@
+name: Deploy YuoVision Server to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+env:
+  REGISTRY: asia-northeast1-docker.pkg.dev
+  REPOSITORY: yuovision-repo
+  SERVICE_NAME: yuovision-server
+  REGION: asia-northeast1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ steps.set-env.outputs.WIF_SA }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker to use gcloud as a credential helper
+        run: gcloud auth configure-docker ${{ env.REGISTRY }}
+
+      - name: Set environment specific variables
+        id: set-env
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "ENVIRONMENT=prod" >> $GITHUB_OUTPUT
+            echo "PROJECT_ID=yuovision" >> $GITHUB_OUTPUT
+            echo "WIF_SA=github-actions-sa@yuovision.iam.gserviceaccount.com" >> $GITHUB_OUTPUT
+          else
+            echo "ENVIRONMENT=dev" >> $GITHUB_OUTPUT
+            echo "PROJECT_ID=yuovision-dev-project" >> $GITHUB_OUTPUT
+            echo "WIF_SA=github-actions-sa@yuovision-dev-project.iam.gserviceaccount.com" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.REGISTRY }}/${{ steps.set-env.outputs.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }} .
+
+      - name: Push Docker image to Artifact Registry
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ steps.set-env.outputs.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+
+      - name: Update Cloud Run service image
+        run: |
+          SERVICE_NAME="yuovision-${{ steps.set-env.outputs.ENVIRONMENT }}-api"
+          gcloud run services update $SERVICE_NAME \
+            --image=${{ env.REGISTRY }}/${{ steps.set-env.outputs.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            --region=${{ env.REGION }}
+
+      - name: Get Cloud Run URL
+        id: get-url
+        run: |
+          SERVICE_NAME="yuovision-${{ steps.set-env.outputs.ENVIRONMENT }}-api"
+          URL=$(gcloud run services describe $SERVICE_NAME --region=${{ env.REGION }} --format='value(status.url)')
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Output deployment info
+        run: |
+          echo "Service deployed successfully!"
+          echo "URL: ${{ steps.get-url.outputs.url }}"
+          echo "Environment: ${{ steps.set-env.outputs.ENVIRONMENT }}"
+          echo "Image: ${{ env.REGISTRY }}/${{ steps.set-env.outputs.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"

@@ -2,13 +2,22 @@ fmt:
 	./shell/fmt.sh
 
 build:
-	docker compose build
+	docker build -t yuovision-server .
 
-up:
-	docker compose up
+run:
+	./docker-run.sh --build
+
+run-dev:
+	./docker-run.sh --dev --build
+
+run-prod:
+	./docker-run.sh --prod --build
+
+stop:
+	docker stop yuovision-server || true
 
 ps:
-	docker compose ps
+	docker ps --filter name=yuovision-server
 
 test:
 	go test -v ./...
@@ -18,30 +27,8 @@ minio:
 minio_old:
 	docker container run -d --name minio -p 9000:9000 -p 9001:9001 minio/minio:RELEASE.2022-10-08T20-11-00Z server /data --console-address ":9001"
 
-migration:
-	set -a && source .env.prod && set +a&&\
-	atlas schema apply \
-	-u "mysql://$${MYSQL_USER}:$${MYSQL_PASSWORD}@$${MYSQL_HOST}:$${MYSQL_PORT}/$${MYSQL_DATABASE}" \
-	--to file://db/atlas/schema.hcl
-
-migration_dev:
-	set -a && source .env.dev && set +a&&\
-	atlas schema apply \
-	-u "mysql://$${MYSQL_USER}:$${MYSQL_PASSWORD}@$${MYSQL_HOST}:$${MYSQL_PORT}/$${MYSQL_DATABASE}" \
-	--to file://db/atlas/schema.hcl
-
-schema_output:
-	mkdir -p db/atlas &&\
-	set -a && source .env.prod && set +a&&\
-	atlas schema inspect -u "mysql://$${MYSQL_USER}:$${MYSQL_PASSWORD}@$${MYSQL_HOST}:$${MYSQL_PORT}/$${MYSQL_DATABASE}" > db/atlas/schema.hcl
-
-sql_output:
-	mkdir -p db/atlas &&\
-	set -a && source .env.prod && set +a&&\
-	atlas schema inspect -u "mysql://$${MYSQL_USER}:$${MYSQL_PASSWORD}@$${MYSQL_HOST}:$${MYSQL_PORT}/$${MYSQL_DATABASE}" --format "{{ sql . \" \" }}" > db/atlas/schema.sql
-
 gen:
-	./shell/gen_db.sh
+	go generate ./...
 
 lint:
 	./shell/lint.sh

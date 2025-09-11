@@ -3,8 +3,6 @@ package domain
 import (
 	"fmt"
 	"time"
-
-	"github.com/yuorei/video-server/app/driver/db/mongodb/collection"
 )
 
 func NewCommentID() string {
@@ -15,6 +13,7 @@ type (
 	Comment struct {
 		ID        string
 		VideoID   string
+		UserID    string
 		Text      string
 		CreatedAt time.Time
 		UpdatedAt time.Time
@@ -22,10 +21,11 @@ type (
 	}
 )
 
-func NewComment(id, videoID, text string, createdAt, updatedAt time.Time, user *User) *Comment {
+func NewComment(id, videoID, userID, text string, createdAt, updatedAt time.Time, user *User) *Comment {
 	return &Comment{
 		ID:        id,
 		VideoID:   videoID,
+		UserID:    userID,
 		Text:      text,
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
@@ -37,24 +37,11 @@ func NewPostComment(id, videoID, userID, name, text string) *Comment {
 	return &Comment{
 		ID:        id,
 		VideoID:   videoID,
+		UserID:    userID,
 		Text:      text,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		User: &User{
-			ID:   userID,
-			Name: name,
-		},
-	}
-}
-
-func NewCommentForDB(id, videoID, userID, name, text string) *collection.Comment {
-	return &collection.Comment{
-		ID:        id,
-		VideoID:   videoID,
-		Text:      text,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		User: &collection.User{
 			ID:   userID,
 			Name: name,
 		},

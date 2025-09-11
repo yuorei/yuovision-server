@@ -1,0 +1,6 @@
+scalar Upload
+scalar DateTime
+
+type Mutation {
+  _empty: String
+}

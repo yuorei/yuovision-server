@@ -9,17 +9,17 @@ import (
 )
 
 type VideoUseCase struct {
-	videoRepository port.VideoRepository
+	videoRepo port.VideoPort
 }
 
-func NewVideoUseCase(videoRepository port.VideoRepository) *VideoUseCase {
+func NewVideoUseCase(videoRepo port.VideoPort) *VideoUseCase {
 	return &VideoUseCase{
-		videoRepository: videoRepository,
+		videoRepo: videoRepo,
 	}
 }
 
-func (a *Application) GetVideos(ctx context.Context) ([]*domain.Video, error) {
-	videos, err := a.Video.videoRepository.GetVideosFromDB(ctx)
+func (uc *VideoUseCase) GetVideos(ctx context.Context) ([]*domain.Video, error) {
+	videos, err := uc.videoRepo.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -31,75 +31,34 @@ func (a *Application) GetVideos(ctx context.Context) ([]*domain.Video, error) {
 	return videos, nil
 }
 
-func (a *Application) GetVideosByUserID(ctx context.Context, userID string) ([]*domain.Video, error) {
-	videos, err := a.Video.videoRepository.GetVideosByUserIDFromDB(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	sort.Slice(videos, func(i, j int) bool {
-		return videos[j].CreatedAt.Before(videos[i].CreatedAt)
-	})
-
-	return videos, nil
+func (uc *VideoUseCase) GetVideo(ctx context.Context, videoID string) (*domain.Video, error) {
+	return uc.videoRepo.GetByID(ctx, videoID)
 }
 
-func (a *Application) GetVideo(ctx context.Context, videoID string) (*domain.Video, error) {
-	return a.Video.videoRepository.GetVideoFromDB(ctx, videoID)
-}
-
-func (a *Application) UploadVideo(ctx context.Context, video *domain.UploadVideo, userID string, imageURL string) (*domain.UploadVideoResponse, error) {
-	err := a.Video.videoRepository.CheckUploadAPIRateLimit(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	videofile := domain.NewVideoFile(video.ID, video.Video)
-	// TODO: 実際に動かしたらhaedが0バイトになりEOFになるため、コメントアウト
-	// err := a.Video.videoRepository.ValidationVideo(videofile.Video)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	err = a.Video.videoRepository.ConvertVideoHLS(ctx, videofile.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	videoURL, err := a.Video.videoRepository.UploadVideoForStorage(ctx, videofile)
-	if err != nil {
-		return nil, err
-	}
-
-	videoResponse, err := a.Video.videoRepository.InsertVideo(ctx, video.ID, videoURL, imageURL, video.Title, video.Description, userID, video.Tags, video.IsAdult, video.IsPrivate, video.IsExternalCutout, video.IsAd)
-	if err != nil {
-		return nil, err
-	}
-
-	go func() {
-		err = a.Video.videoRepository.SetUploadAPIRateLimit(ctx, userID)
-		if err != nil {
-		}
-	}()
-
-	return videoResponse, nil
-}
-
-func (a *Application) GetWatchCount(ctx context.Context, videoID string) (int, error) {
-	return a.Video.videoRepository.GetWatchCount(ctx, videoID)
-}
-
-func (a *Application) IncrementWatchCount(ctx context.Context, videoID, userID string) (int, error) {
-	ok, err := a.Video.videoRepository.ChechWatchCount(ctx, videoID, userID)
+func (uc *VideoUseCase) GetWatchCount(ctx context.Context, videoID string) (int, error) {
+	video, err := uc.videoRepo.GetByID(ctx, videoID)
 	if err != nil {
 		return 0, err
-	} else if !ok {
-		return 0, nil
 	}
-
-	return a.Video.videoRepository.IncrementWatchCount(ctx, videoID, userID)
+	return video.WatchCount, nil
 }
 
-func (a *Application) CutVideo(ctx context.Context, videoID, userID string, start, end int) (string, error) {
-	return a.Video.videoRepository.CutVideo(ctx, videoID, userID, start, end)
+func (uc *VideoUseCase) IncrementWatchCount(ctx context.Context, videoID, userID string) (int, error) {
+	video, err := uc.videoRepo.GetByID(ctx, videoID)
+	if err != nil {
+		return 0, err
+	}
+
+	video.WatchCount++
+	err = uc.videoRepo.Update(ctx, video)
+	if err != nil {
+		return 0, err
+	}
+
+	return video.WatchCount, nil
+}
+
+func (uc *VideoUseCase) CutVideo(ctx context.Context, videoID string, start, end int) (string, error) {
+	// TODO: Implement video cutting logic
+	return "", nil
 }
