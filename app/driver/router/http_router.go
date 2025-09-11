@@ -22,7 +22,6 @@ const (
 	defaultHTTPPort = "8080"
 )
 
-
 func NewHTTPRouter() {
 	flog.NewLog()
 	slog.Info("start HTTP GraphQL server")
