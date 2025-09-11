@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -25,8 +26,20 @@ type R2Config struct {
 }
 
 func NewR2Client(ctx context.Context, cfg R2Config) (*R2Client, error) {
+	slog.Info("initializing R2 client", "accountID", cfg.AccountID, "bucket", cfg.BucketName)
+	
+	if cfg.AccessKeyID == "" || cfg.SecretAccessKey == "" || cfg.AccountID == "" || cfg.BucketName == "" {
+		slog.Error("R2 configuration is incomplete", 
+			"hasAccessKey", cfg.AccessKeyID != "",
+			"hasSecretKey", cfg.SecretAccessKey != "",
+			"hasAccountID", cfg.AccountID != "",
+			"hasBucket", cfg.BucketName != "")
+		return nil, fmt.Errorf("R2 configuration is incomplete")
+	}
+	
 	// Cloudflare R2 endpoint
 	endpoint := fmt.Sprintf("https://%s.r2.cloudflarestorage.com", cfg.AccountID)
+	slog.Info("using R2 endpoint", "endpoint", endpoint)
 
 	r2Resolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 		return aws.Endpoint{
@@ -34,6 +47,7 @@ func NewR2Client(ctx context.Context, cfg R2Config) (*R2Client, error) {
 		}, nil
 	})
 
+	slog.Info("loading AWS config for R2")
 	awsCfg, err := config.LoadDefaultConfig(ctx,
 		config.WithEndpointResolverWithOptions(r2Resolver),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
@@ -44,10 +58,13 @@ func NewR2Client(ctx context.Context, cfg R2Config) (*R2Client, error) {
 		config.WithRegion("auto"), // R2 uses 'auto' as region
 	)
 	if err != nil {
+		slog.Error("failed to load AWS config for R2", "error", err)
 		return nil, fmt.Errorf("failed to load AWS config: %w", err)
 	}
+	slog.Info("AWS config loaded successfully")
 
 	client := s3.NewFromConfig(awsCfg)
+	slog.Info("R2 client initialized successfully")
 
 	return &R2Client{
 		client: client,
