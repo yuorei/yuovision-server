@@ -45,16 +45,6 @@ func NewHTTPRouter() {
 	}
 	slog.Info("using port", "port", port)
 
-	// Log environment variables for debugging
-	slog.Info("environment variables",
-		"FIREBASE_CREDENTIALS_PATH", os.Getenv("FIREBASE_CREDENTIALS_PATH"),
-		"FIREBASE_PROJECT_ID", os.Getenv("FIREBASE_PROJECT_ID"),
-		"R2_ACCESS_KEY_ID", maskSecret(os.Getenv("R2_ACCESS_KEY_ID")),
-		"R2_SECRET_ACCESS_KEY", maskSecret(os.Getenv("R2_SECRET_ACCESS_KEY")),
-		"R2_ACCOUNT_ID", os.Getenv("R2_ACCOUNT_ID"),
-		"R2_BUCKET_NAME", os.Getenv("R2_BUCKET_NAME"),
-	)
-
 	// Initialize new infrastructure with Firebase and R2
 	infraConfig := infrastructure.InfraConfig{
 		FirebaseCredentialsPath: os.Getenv("FIREBASE_CREDENTIALS_PATH"),

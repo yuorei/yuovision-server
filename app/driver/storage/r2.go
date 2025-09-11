@@ -29,11 +29,6 @@ func NewR2Client(ctx context.Context, cfg R2Config) (*R2Client, error) {
 	slog.Info("initializing R2 client", "accountID", cfg.AccountID, "bucket", cfg.BucketName)
 
 	if cfg.AccessKeyID == "" || cfg.SecretAccessKey == "" || cfg.AccountID == "" || cfg.BucketName == "" {
-		slog.Error("R2 configuration is incomplete",
-			"hasAccessKey", cfg.AccessKeyID != "",
-			"hasSecretKey", cfg.SecretAccessKey != "",
-			"hasAccountID", cfg.AccountID != "",
-			"hasBucket", cfg.BucketName != "")
 		return nil, fmt.Errorf("R2 configuration is incomplete")
 	}
 
