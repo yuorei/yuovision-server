@@ -100,7 +100,6 @@ func (r *VideoRepository) GetByID(ctx context.Context, id string) (*domain.Video
 func (r *VideoRepository) GetAll(ctx context.Context) ([]*domain.Video, error) {
 	iter := r.client.Collection(r.collection).
 		Where("is_private", "==", false).
-		OrderBy("created_at", firestore.Desc).
 		Documents(ctx)
 
 	var videos []*domain.Video
