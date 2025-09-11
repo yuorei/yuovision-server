@@ -17,6 +17,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/newrelic/go-agent/v3 v3.35.1
+	github.com/rs/cors v1.11.1
 	github.com/vektah/gqlparser/v2 v2.5.10
 	google.golang.org/api v0.247.0
 )

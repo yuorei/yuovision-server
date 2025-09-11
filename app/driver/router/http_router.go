@@ -9,6 +9,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/rs/cors"
 
 	"github.com/yuorei/video-server/app/adapter/infrastructure"
 	"github.com/yuorei/video-server/app/adapter/presentation/resolver"
@@ -62,14 +63,34 @@ func NewHTTPRouter() {
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	// CORS設定
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{
+			"https://*.yuorei.com",
+		},
+		AllowedMethods: []string{
+			http.MethodHead,
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodDelete,
+		},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+	})
+
+	mux := http.NewServeMux()
+	mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	mux.Handle("/query", srv)
+
+	handler := c.Handler(mux)
 
 	slog.Info("starting GraphQL server", "port", port, "playground", "http://localhost:"+port+"/")
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 
 	slog.Info("server listening on port", "port", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+port, handler); err != nil {
 		slog.Error("server failed to start", "error", err)
 		log.Fatal(err)
 	}
