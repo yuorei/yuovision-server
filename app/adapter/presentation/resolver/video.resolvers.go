@@ -55,12 +55,33 @@ func (r *queryResolver) Videos(ctx context.Context) ([]*model.Video, error) {
 
 // Video is the resolver for the video field.
 func (r *queryResolver) Video(ctx context.Context, id string) (*model.Video, error) {
-	panic(fmt.Errorf("not implemented: Video - video"))
+	domainVideo, err := r.app.Video.GetVideo(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	gqlVideo := &model.Video{
+		ID:                domainVideo.ID,
+		VideoURL:          domainVideo.VideoURL,
+		Title:             domainVideo.Title,
+		ThumbnailImageURL: domainVideo.ThumbnailImageURL,
+		Description:       domainVideo.Description,
+		Tags:              lib.ConvertStringSliceToPointerSlice(domainVideo.Tags),
+		IsPrivate:         domainVideo.IsPrivate,
+		IsAdult:           domainVideo.IsAdult,
+		IsExternalCutout:  domainVideo.IsExternalCutout,
+		WatchCount:        domainVideo.WatchCount,
+		CreatedAt:         domainVideo.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt:         domainVideo.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		Uploader:          nil, // Will be resolved by the uploader field resolver
+	}
+
+	return gqlVideo, nil
 }
 
 // WatchCount is the resolver for the watchCount field.
 func (r *queryResolver) WatchCount(ctx context.Context, videoID string) (int, error) {
-	panic(fmt.Errorf("not implemented: WatchCount - watchCount"))
+	return r.app.Video.GetWatchCount(ctx, videoID)
 }
 
 // CutVideo is the resolver for the cutVideo field.
@@ -70,22 +91,62 @@ func (r *queryResolver) CutVideo(ctx context.Context, input model.CutVideoInput)
 
 // ID is the resolver for the id field.
 func (r *videoResolver) ID(ctx context.Context, obj *model.Video) (string, error) {
-	panic(fmt.Errorf("not implemented: ID - id"))
+	return obj.ID, nil
 }
 
 // Uploader is the resolver for the uploader field.
 func (r *videoResolver) Uploader(ctx context.Context, obj *model.Video) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: Uploader - uploader"))
+	// VideoからUploaderIDを取得するため、まずdomainのVideoを取得
+	domainVideo, err := r.app.Video.GetVideo(ctx, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// UploaderIDからUserを取得
+	domainUser, err := r.app.User.GetUser(ctx, domainVideo.UploaderID)
+	if err != nil {
+		return nil, err
+	}
+
+	gqlUser := &model.User{
+		ID:              domainUser.ID,
+		Name:            domainUser.Name,
+		ProfileImageURL: domainUser.ProfileImageURL,
+		IsSubscribed:    domainUser.IsSubscribed,
+		Role:            model.Role(domainUser.Role),
+	}
+
+	return gqlUser, nil
 }
 
 // ID is the resolver for the id field.
 func (r *videoPayloadResolver) ID(ctx context.Context, obj *model.VideoPayload) (string, error) {
-	panic(fmt.Errorf("not implemented: ID - id"))
+	return obj.ID, nil
 }
 
 // Uploader is the resolver for the uploader field.
 func (r *videoPayloadResolver) Uploader(ctx context.Context, obj *model.VideoPayload) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: Uploader - uploader"))
+	// VideoPayloadからUploaderIDを取得するため、まずdomainのVideoを取得
+	domainVideo, err := r.app.Video.GetVideo(ctx, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// UploaderIDからUserを取得
+	domainUser, err := r.app.User.GetUser(ctx, domainVideo.UploaderID)
+	if err != nil {
+		return nil, err
+	}
+
+	gqlUser := &model.User{
+		ID:              domainUser.ID,
+		Name:            domainUser.Name,
+		ProfileImageURL: domainUser.ProfileImageURL,
+		IsSubscribed:    domainUser.IsSubscribed,
+		Role:            model.Role(domainUser.Role),
+	}
+
+	return gqlUser, nil
 }
 
 // Video returns generated.VideoResolver implementation.
