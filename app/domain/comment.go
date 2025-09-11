@@ -21,11 +21,11 @@ type (
 	}
 )
 
-func NewComment(id, videoID, userID, text string, createdAt, updatedAt time.Time, user *User) *Comment {
+func NewComment(id, videoID, text string, createdAt, updatedAt time.Time, user *User) *Comment {
 	return &Comment{
 		ID:        id,
 		VideoID:   videoID,
-		UserID:    userID,
+		UserID:    user.ID,
 		Text:      text,
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,

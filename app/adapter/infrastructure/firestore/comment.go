@@ -3,6 +3,7 @@ package firestore
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -90,6 +91,7 @@ func (r *CommentRepository) GetByVideoID(ctx context.Context, videoID string) ([
 
 		var commentDoc CommentDoc
 		if err := doc.DataTo(&commentDoc); err != nil {
+			slog.Warn("Failed to unmarshal comment document", "error", err, "document_id", doc.Ref.ID)
 			continue // Skip invalid documents
 		}
 

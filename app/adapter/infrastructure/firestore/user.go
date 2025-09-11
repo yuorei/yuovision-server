@@ -3,6 +3,7 @@ package firestore
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -93,6 +94,7 @@ func (r *UserRepository) GetAll(ctx context.Context) ([]*domain.User, error) {
 
 		var userDoc UserDoc
 		if err := doc.DataTo(&userDoc); err != nil {
+			slog.Warn("Failed to unmarshal user document", "error", err, "document_id", doc.Ref.ID)
 			continue // Skip invalid documents
 		}
 
@@ -121,7 +123,7 @@ func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
 		Role:                user.Role,
 		Subscribechannelids: user.Subscribechannelids,
 		CreatedAt:           user.CreatedAt,
-		UpdatedAt:           time.Now(),
+		UpdatedAt:           user.UpdatedAt,
 	}
 
 	_, err := r.client.Collection(r.collection).Doc(user.ID).Set(ctx, doc, firestore.MergeAll)

@@ -3,6 +3,7 @@ package firestore
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -114,6 +115,7 @@ func (r *VideoRepository) GetAll(ctx context.Context) ([]*domain.Video, error) {
 
 		var videoDoc VideoDoc
 		if err := doc.DataTo(&videoDoc); err != nil {
+			slog.Warn("Failed to unmarshal video document", "error", err, "document_id", doc.Ref.ID)
 			continue // Skip invalid documents
 		}
 
@@ -154,7 +156,7 @@ func (r *VideoRepository) Update(ctx context.Context, video *domain.Video) error
 		IsAd:              video.IsAd,
 		UploaderID:        video.UploaderID,
 		CreatedAt:         video.CreatedAt,
-		UpdatedAt:         time.Now(),
+		UpdatedAt:         video.UpdatedAt,
 	}
 
 	_, err := r.client.Collection(r.collection).Doc(video.ID).Set(ctx, doc, firestore.MergeAll)

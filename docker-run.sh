@@ -69,7 +69,7 @@ if [[ -z "$ENV_FILE" ]]; then
 fi
 
 # Stop and remove existing container if it exists
-if docker ps -a --format 'table {{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
   echo "Stopping and removing existing container: $CONTAINER_NAME"
   docker stop $CONTAINER_NAME || true
   docker rm $CONTAINER_NAME || true

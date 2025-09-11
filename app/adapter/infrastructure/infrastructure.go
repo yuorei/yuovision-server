@@ -2,6 +2,8 @@ package infrastructure
 
 import (
 	"context"
+	"errors"
+	"io"
 
 	"cloud.google.com/go/firestore"
 	firestoreRepo "github.com/yuorei/video-server/app/adapter/infrastructure/firestore"
@@ -65,4 +67,34 @@ func NewInfrastructure(ctx context.Context, cfg InfraConfig) (*Infrastructure, e
 		R2Client:        r2Client,
 		FirebaseAuth:    authClient,
 	}, nil
+}
+
+// ValidationVideo validates if the provided video is valid
+func (i *Infrastructure) ValidationVideo(video io.ReadSeeker) error {
+	if video == nil {
+		return errors.New("video is nil")
+	}
+
+	// Read first few bytes to check file format
+	buffer := make([]byte, 512)
+	_, err := video.Read(buffer)
+	if err != nil {
+		return errors.New("failed to read video")
+	}
+
+	// Reset the reader position
+	video.Seek(0, io.SeekStart)
+
+	// Check for empty file or invalid format
+	// This is a simplified validation - you might want to use a proper video format detection library
+	if len(buffer) == 0 {
+		return errors.New("video is empty")
+	}
+
+	// Simple format check based on file signatures
+	if buffer[0] == 0x89 && buffer[1] == 0x50 && buffer[2] == 0x4E && buffer[3] == 0x47 {
+		return errors.New("file is PNG, not a video")
+	}
+
+	return nil
 }
