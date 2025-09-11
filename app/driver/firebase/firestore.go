@@ -20,7 +20,7 @@ func (fc *FirestoreClient) Client() *firestore.Client {
 
 func NewFirestoreClient(ctx context.Context, projectID, credentialsPath string) (*FirestoreClient, error) {
 	slog.Info("initializing Firestore client", "projectID", projectID, "credentialsPath", credentialsPath != "")
-	
+
 	var app *firebase.App
 	var err error
 

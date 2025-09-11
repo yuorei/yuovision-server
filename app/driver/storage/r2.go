@@ -27,16 +27,16 @@ type R2Config struct {
 
 func NewR2Client(ctx context.Context, cfg R2Config) (*R2Client, error) {
 	slog.Info("initializing R2 client", "accountID", cfg.AccountID, "bucket", cfg.BucketName)
-	
+
 	if cfg.AccessKeyID == "" || cfg.SecretAccessKey == "" || cfg.AccountID == "" || cfg.BucketName == "" {
-		slog.Error("R2 configuration is incomplete", 
+		slog.Error("R2 configuration is incomplete",
 			"hasAccessKey", cfg.AccessKeyID != "",
 			"hasSecretKey", cfg.SecretAccessKey != "",
 			"hasAccountID", cfg.AccountID != "",
 			"hasBucket", cfg.BucketName != "")
 		return nil, fmt.Errorf("R2 configuration is incomplete")
 	}
-	
+
 	// Cloudflare R2 endpoint
 	endpoint := fmt.Sprintf("https://%s.r2.cloudflarestorage.com", cfg.AccountID)
 	slog.Info("using R2 endpoint", "endpoint", endpoint)

@@ -85,7 +85,7 @@ func NewHTTPRouter() {
 
 	slog.Info("starting GraphQL server", "port", port, "playground", "http://localhost:"+port+"/")
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	
+
 	slog.Info("server listening on port", "port", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		slog.Error("server failed to start", "error", err)
