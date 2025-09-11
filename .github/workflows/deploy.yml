@@ -73,8 +73,7 @@ jobs:
           SERVICE_NAME="yuovision-${{ steps.set-env.outputs.ENVIRONMENT }}-server"
           gcloud run services update $SERVICE_NAME \
             --image=${{ env.REGISTRY }}/${{ steps.set-env.outputs.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
-            --region=${{ env.REGION }} \
-            --set-env-vars="GOOGLE_CLOUD_PROJECT_ID=${{ steps.set-env.outputs.PROJECT_ID }},FIRESTORE_PROJECT_ID=${{ steps.set-env.outputs.PROJECT_ID }},FIREBASE_PROJECT_ID=${{ steps.set-env.outputs.PROJECT_ID }}"
+            --region=${{ env.REGION }
 
       - name: Get Cloud Run URL
         id: get-url
