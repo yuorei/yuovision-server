@@ -10,6 +10,7 @@ import (
 
 	model "github.com/yuorei/video-server/app/domain/models"
 	"github.com/yuorei/video-server/graph/generated"
+	"github.com/yuorei/video-server/lib"
 )
 
 // UploadVideo is the resolver for the UploadVideo field.
@@ -24,7 +25,32 @@ func (r *mutationResolver) IncrementWatchCount(ctx context.Context, input model.
 
 // Videos is the resolver for the videos field.
 func (r *queryResolver) Videos(ctx context.Context) ([]*model.Video, error) {
-	panic(fmt.Errorf("not implemented: Videos - videos"))
+	domainVideos, err := r.app.Video.GetVideos(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var gqlVideos []*model.Video
+	for _, domainVideo := range domainVideos {
+		gqlVideo := &model.Video{
+			ID:                domainVideo.ID,
+			VideoURL:          domainVideo.VideoURL,
+			Title:             domainVideo.Title,
+			ThumbnailImageURL: domainVideo.ThumbnailImageURL,
+			Description:       domainVideo.Description,
+			Tags:              lib.ConvertStringSliceToPointerSlice(domainVideo.Tags),
+			IsPrivate:         domainVideo.IsPrivate,
+			IsAdult:           domainVideo.IsAdult,
+			IsExternalCutout:  domainVideo.IsExternalCutout,
+			WatchCount:        domainVideo.WatchCount,
+			CreatedAt:         domainVideo.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UpdatedAt:         domainVideo.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			Uploader:          nil, // Will be resolved by the uploader field resolver
+		}
+		gqlVideos = append(gqlVideos, gqlVideo)
+	}
+
+	return gqlVideos, nil
 }
 
 // Video is the resolver for the video field.
