@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
-	"google.golang.org/api/iterator"
 	"github.com/yuorei/video-server/app/domain"
+	"google.golang.org/api/iterator"
 )
 
 type UserRepository struct {
