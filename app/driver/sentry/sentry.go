@@ -1,8 +1,7 @@
 package sentry
 
 import (
-	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -12,7 +11,8 @@ import (
 func SentryInit() {
 	sentryDSN := os.Getenv("SENTRY_DSN")
 	if sentryDSN == "" {
-		log.Fatal("Error: Sentry DSN is empty")
+		slog.Warn("Sentry DSN is empty, skipping Sentry initialization")
+		return
 	}
 
 	err := sentry.Init(sentry.ClientOptions{
@@ -23,10 +23,11 @@ func SentryInit() {
 		TracesSampleRate: 1.0,
 	})
 	if err != nil {
-		log.Fatalf("sentry.Init: %s", err)
+		slog.Error("failed to initialize Sentry", "error", err)
+		return
 	}
 
-	fmt.Println("Sentry Init")
+	slog.Info("Sentry initialized successfully")
 	// Flush buffered events before the program terminates.
 	defer sentry.Flush(2 * time.Second)
 	sentry.CaptureMessage("It works!")

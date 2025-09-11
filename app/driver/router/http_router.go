@@ -22,16 +22,6 @@ const (
 	defaultHTTPPort = "8080"
 )
 
-// maskSecret masks secret values for logging
-func maskSecret(secret string) string {
-	if secret == "" {
-		return ""
-	}
-	if len(secret) <= 4 {
-		return "****"
-	}
-	return secret[:2] + "****" + secret[len(secret)-2:]
-}
 
 func NewHTTPRouter() {
 	flog.NewLog()
