@@ -45,6 +45,7 @@ func (r *queryResolver) Videos(ctx context.Context) ([]*model.Video, error) {
 			WatchCount:        domainVideo.WatchCount,
 			CreatedAt:         domainVideo.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 			UpdatedAt:         domainVideo.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UploaderID:        domainVideo.UploaderID,
 			Uploader:          nil, // Will be resolved by the uploader field resolver
 		}
 		gqlVideos = append(gqlVideos, gqlVideo)
@@ -73,6 +74,7 @@ func (r *queryResolver) Video(ctx context.Context, id string) (*model.Video, err
 		WatchCount:        domainVideo.WatchCount,
 		CreatedAt:         domainVideo.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt:         domainVideo.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UploaderID:        domainVideo.UploaderID,
 		Uploader:          nil, // Will be resolved by the uploader field resolver
 	}
 
@@ -94,29 +96,14 @@ func (r *videoResolver) ID(ctx context.Context, obj *model.Video) (string, error
 	return obj.ID, nil
 }
 
+// UploaderID is the resolver for the uploaderID field.
+func (r *videoResolver) UploaderID(ctx context.Context, obj *model.Video) (string, error) {
+	return obj.UploaderID, nil
+}
+
 // Uploader is the resolver for the uploader field.
 func (r *videoResolver) Uploader(ctx context.Context, obj *model.Video) (*model.User, error) {
-	// VideoからUploaderIDを取得するため、まずdomainのVideoを取得
-	domainVideo, err := r.app.Video.GetVideo(ctx, obj.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	// UploaderIDからUserを取得
-	domainUser, err := r.app.User.GetUser(ctx, domainVideo.UploaderID)
-	if err != nil {
-		return nil, err
-	}
-
-	gqlUser := &model.User{
-		ID:              domainUser.ID,
-		Name:            domainUser.Name,
-		ProfileImageURL: domainUser.ProfileImageURL,
-		IsSubscribed:    domainUser.IsSubscribed,
-		Role:            model.Role(domainUser.Role),
-	}
-
-	return gqlUser, nil
+	return r.getUploaderForVideo(ctx, obj.UploaderID)
 }
 
 // ID is the resolver for the id field.
@@ -124,16 +111,26 @@ func (r *videoPayloadResolver) ID(ctx context.Context, obj *model.VideoPayload) 
 	return obj.ID, nil
 }
 
+// UploaderID is the resolver for the uploaderID field.
+func (r *videoPayloadResolver) UploaderID(ctx context.Context, obj *model.VideoPayload) (string, error) {
+	return obj.UploaderID, nil
+}
+
 // Uploader is the resolver for the uploader field.
 func (r *videoPayloadResolver) Uploader(ctx context.Context, obj *model.VideoPayload) (*model.User, error) {
-	// VideoPayloadからUploaderIDを取得するため、まずdomainのVideoを取得
-	domainVideo, err := r.app.Video.GetVideo(ctx, obj.ID)
-	if err != nil {
-		return nil, err
-	}
+	return r.getUploaderForVideo(ctx, obj.UploaderID)
+}
 
-	// UploaderIDからUserを取得
-	domainUser, err := r.app.User.GetUser(ctx, domainVideo.UploaderID)
+// Video returns generated.VideoResolver implementation.
+func (r *Resolver) Video() generated.VideoResolver { return &videoResolver{r} }
+
+// VideoPayload returns generated.VideoPayloadResolver implementation.
+func (r *Resolver) VideoPayload() generated.VideoPayloadResolver { return &videoPayloadResolver{r} }
+
+// getUploaderForVideo is a helper function to get uploader information by UploaderID
+// This eliminates code duplication between Video and VideoPayload uploader resolvers
+func (r *Resolver) getUploaderForVideo(ctx context.Context, uploaderID string) (*model.User, error) {
+	domainUser, err := r.app.User.GetUser(ctx, uploaderID)
 	if err != nil {
 		return nil, err
 	}
@@ -148,12 +145,6 @@ func (r *videoPayloadResolver) Uploader(ctx context.Context, obj *model.VideoPay
 
 	return gqlUser, nil
 }
-
-// Video returns generated.VideoResolver implementation.
-func (r *Resolver) Video() generated.VideoResolver { return &videoResolver{r} }
-
-// VideoPayload returns generated.VideoPayloadResolver implementation.
-func (r *Resolver) VideoPayload() generated.VideoPayloadResolver { return &videoPayloadResolver{r} }
 
 type videoResolver struct{ *Resolver }
 type videoPayloadResolver struct{ *Resolver }
