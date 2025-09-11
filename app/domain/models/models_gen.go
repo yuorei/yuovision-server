@@ -116,6 +116,7 @@ type Video struct {
 	WatchCount        int       `json:"watchCount"`
 	CreatedAt         string    `json:"createdAt"`
 	UpdatedAt         string    `json:"updatedAt"`
+	UploaderID        string    `json:"uploaderID"`
 	Uploader          *User     `json:"uploader"`
 }
 
@@ -135,6 +136,7 @@ type VideoPayload struct {
 	WatchCount        int       `json:"watchCount"`
 	CreatedAt         string    `json:"createdAt"`
 	UpdatedAt         string    `json:"updatedAt"`
+	UploaderID        string    `json:"uploaderID"`
 	Uploader          *User     `json:"uploader"`
 }
 

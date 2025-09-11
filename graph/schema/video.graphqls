@@ -11,6 +11,7 @@ type Video implements Node {
   watchCount: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
+  uploaderID: ID!
   uploader: User! @goField(forceResolver: true)
 }
 
@@ -27,6 +28,7 @@ type VideoPayload {
   watchCount: Int!
   createdAt: DateTime!
   updatedAt: DateTime!
+  uploaderID: ID!
   uploader: User! @goField(forceResolver: true)
 }
 
