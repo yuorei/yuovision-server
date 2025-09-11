@@ -60,21 +60,22 @@ jobs:
 
       - name: Update Cloud Run service image
         run: |
-          SERVICE_NAME="yuovision-${{ steps.set-env.outputs.ENVIRONMENT }}-api"
+          SERVICE_NAME="yuovision-${{ steps.set-env.outputs.ENVIRONMENT }}-server"
           gcloud run services update $SERVICE_NAME \
             --image=${{ env.REGISTRY }}/${{ steps.set-env.outputs.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
-            --region=${{ env.REGION }}
+            --region=${{ env.REGION }} \
+            --set-env-vars="GOOGLE_CLOUD_PROJECT_ID=${{ steps.set-env.outputs.PROJECT_ID }},FIRESTORE_PROJECT_ID=${{ steps.set-env.outputs.PROJECT_ID }},FIREBASE_PROJECT_ID=${{ steps.set-env.outputs.PROJECT_ID }}"
 
       - name: Get Cloud Run URL
         id: get-url
         run: |
-          SERVICE_NAME="yuovision-${{ steps.set-env.outputs.ENVIRONMENT }}-api"
+          SERVICE_NAME="yuovision-${{ steps.set-env.outputs.ENVIRONMENT }}-server"
           URL=$(gcloud run services describe $SERVICE_NAME --region=${{ env.REGION }} --format='value(status.url)')
           echo "url=$URL" >> $GITHUB_OUTPUT
 
       - name: Output deployment info
         run: |
-          echo "Service deployed successfully!"
+          echo "Server service deployed successfully!"
           echo "URL: ${{ steps.get-url.outputs.url }}"
           echo "Environment: ${{ steps.set-env.outputs.ENVIRONMENT }}"
           echo "Image: ${{ env.REGISTRY }}/${{ steps.set-env.outputs.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
