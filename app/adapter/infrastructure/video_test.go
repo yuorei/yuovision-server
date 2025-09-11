@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-
 func Test_動画のバリデーションチェック(t *testing.T) {
 	type fields struct {
 		// db    *db.DB
