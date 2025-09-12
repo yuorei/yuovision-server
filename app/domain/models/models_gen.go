@@ -124,20 +124,31 @@ func (Video) IsNode()            {}
 func (this Video) GetID() string { return this.ID }
 
 type VideoPayload struct {
-	ID                string    `json:"id"`
-	VideoURL          string    `json:"videoURL"`
-	Title             string    `json:"title"`
-	ThumbnailImageURL string    `json:"thumbnailImageURL"`
-	Description       *string   `json:"description,omitempty"`
-	Tags              []*string `json:"tags,omitempty"`
-	IsPrivate         bool      `json:"isPrivate"`
-	IsAdult           bool      `json:"isAdult"`
-	IsExternalCutout  bool      `json:"isExternalCutout"`
-	WatchCount        int       `json:"watchCount"`
-	CreatedAt         string    `json:"createdAt"`
-	UpdatedAt         string    `json:"updatedAt"`
-	UploaderID        string    `json:"uploaderID"`
-	Uploader          *User     `json:"uploader"`
+	ID                string               `json:"id"`
+	VideoURL          *string              `json:"videoURL,omitempty"`
+	Title             string               `json:"title"`
+	ThumbnailImageURL *string              `json:"thumbnailImageURL,omitempty"`
+	Description       *string              `json:"description,omitempty"`
+	Tags              []*string            `json:"tags,omitempty"`
+	IsPrivate         bool                 `json:"isPrivate"`
+	IsAdult           bool                 `json:"isAdult"`
+	IsExternalCutout  bool                 `json:"isExternalCutout"`
+	WatchCount        int                  `json:"watchCount"`
+	CreatedAt         string               `json:"createdAt"`
+	UpdatedAt         string               `json:"updatedAt"`
+	UploaderID        string               `json:"uploaderID"`
+	Uploader          *User                `json:"uploader"`
+	ProcessingInfo    *VideoProcessingInfo `json:"processingInfo"`
+}
+
+type VideoProcessingInfo struct {
+	ID        string                `json:"id"`
+	VideoID   string                `json:"videoID"`
+	Status    VideoProcessingStatus `json:"status"`
+	Progress  int                   `json:"progress"`
+	Message   *string               `json:"message,omitempty"`
+	CreatedAt string                `json:"createdAt"`
+	UpdatedAt string                `json:"updatedAt"`
 }
 
 type SubscribeChannelInput struct {
@@ -182,5 +193,50 @@ func (e *Role) UnmarshalGQL(v interface{}) error {
 }
 
 func (e Role) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type VideoProcessingStatus string
+
+const (
+	VideoProcessingStatusUploaded   VideoProcessingStatus = "UPLOADED"
+	VideoProcessingStatusProcessing VideoProcessingStatus = "PROCESSING"
+	VideoProcessingStatusCompleted  VideoProcessingStatus = "COMPLETED"
+	VideoProcessingStatusFailed     VideoProcessingStatus = "FAILED"
+)
+
+var AllVideoProcessingStatus = []VideoProcessingStatus{
+	VideoProcessingStatusUploaded,
+	VideoProcessingStatusProcessing,
+	VideoProcessingStatusCompleted,
+	VideoProcessingStatusFailed,
+}
+
+func (e VideoProcessingStatus) IsValid() bool {
+	switch e {
+	case VideoProcessingStatusUploaded, VideoProcessingStatusProcessing, VideoProcessingStatusCompleted, VideoProcessingStatusFailed:
+		return true
+	}
+	return false
+}
+
+func (e VideoProcessingStatus) String() string {
+	return string(e)
+}
+
+func (e *VideoProcessingStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = VideoProcessingStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid VideoProcessingStatus", str)
+	}
+	return nil
+}
+
+func (e VideoProcessingStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

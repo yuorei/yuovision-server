@@ -34,3 +34,10 @@ type VideoRepository interface {
 	IncrementWatchCount(context.Context, string, string) (int, error)
 	CutVideo(context.Context, string, string, int, int) (string, error)
 }
+
+type VideoProcessingRepository interface {
+	Create(context.Context, *domain.VideoProcessingInfo) error
+	GetByVideoID(context.Context, string) (*domain.VideoProcessingInfo, error)
+	GetByUserID(context.Context, string) ([]*domain.VideoProcessingInfo, error)
+	Update(context.Context, *domain.VideoProcessingInfo) error
+}

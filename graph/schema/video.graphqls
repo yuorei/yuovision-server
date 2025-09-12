@@ -17,9 +17,9 @@ type Video implements Node {
 
 type VideoPayload {
   id: ID! @goField(forceResolver: true)
-  videoURL: String!
+  videoURL: String
   title: String!
-  thumbnailImageURL: String!
+  thumbnailImageURL: String
   description: String
   tags: [String]
   isPrivate: Boolean!
@@ -30,6 +30,7 @@ type VideoPayload {
   updatedAt: DateTime!
   uploaderID: ID!
   uploader: User! @goField(forceResolver: true)
+  processingInfo: VideoProcessingInfo!
 }
 
 type IncrementWatchCountPayload {
@@ -38,6 +39,23 @@ type IncrementWatchCountPayload {
 
 type CutVideoPayload {
   cutVideoURL: String!
+}
+
+enum VideoProcessingStatus {
+  UPLOADED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+type VideoProcessingInfo {
+  id: ID!
+  videoID: ID!
+  status: VideoProcessingStatus!
+  progress: Int!
+  message: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 input UploadVideoInput {
@@ -67,9 +85,16 @@ extend type Query {
   video(id: ID!): Video!
   watchCount(videoID: ID!): Int!
   cutVideo(input: CutVideoInput!): CutVideoPayload!
+  videoProcessingInfo(videoID: ID!): VideoProcessingInfo
+  userVideoProcessing(userID: ID!): [VideoProcessingInfo!]!
 }
 
 extend type Mutation {
   UploadVideo(input: UploadVideoInput!): VideoPayload!
   IncrementWatchCount(input: IncrementWatchCountInput!): IncrementWatchCountPayload!
+}
+
+extend type Subscription {
+  videoProcessingUpdates(videoID: ID!): VideoProcessingInfo!
+  userVideoProcessingUpdates(userID: ID!): VideoProcessingInfo!
 }

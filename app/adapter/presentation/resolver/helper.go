@@ -24,3 +24,14 @@ func (r *Resolver) getUploaderForVideo(ctx context.Context, uploaderID string) (
 
 	return gqlUser, nil
 }
+
+// getCurrentUserID extracts user ID from the context
+func (r *Resolver) getCurrentUserID(ctx context.Context) string {
+	// This assumes that authentication middleware sets the user ID in the context
+	// The key should match what your authentication middleware uses
+	userID, ok := ctx.Value("userID").(string)
+	if !ok {
+		return ""
+	}
+	return userID
+}

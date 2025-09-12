@@ -7,7 +7,9 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/yuorei/video-server/app/domain"
 	model "github.com/yuorei/video-server/app/domain/models"
 	"github.com/yuorei/video-server/graph/generated"
 	"github.com/yuorei/video-server/lib"
@@ -15,7 +17,106 @@ import (
 
 // UploadVideo is the resolver for the UploadVideo field.
 func (r *mutationResolver) UploadVideo(ctx context.Context, input model.UploadVideoInput) (*model.VideoPayload, error) {
-	panic(fmt.Errorf("not implemented: UploadVideo - UploadVideo"))
+	// Get current user ID from context (assuming authentication middleware sets this)
+	userID := r.getCurrentUserID(ctx)
+	if userID == "" {
+		return nil, fmt.Errorf("user not authenticated")
+	}
+
+	// Generate video ID
+	videoID := domain.NewVideoID()
+
+	// Video URL will be set after processing
+
+	// Handle thumbnail image if provided
+	var thumbnailURL string = ""
+	if input.ThumbnailImage != nil {
+		// Upload thumbnail to storage (R2)
+		thumbnailKey := fmt.Sprintf("thumbnails/%s/thumbnail.webp", videoID)
+		err := r.app.Video.UploadThumbnailToStorage(ctx, thumbnailKey, input.ThumbnailImage.File, "image/webp")
+		if err != nil {
+			return nil, fmt.Errorf("failed to upload thumbnail: %w", err)
+		}
+		thumbnailURL = thumbnailKey // This should be converted to full URL by the storage service
+	}
+
+	// Convert tags from pointers to strings
+	var tags []string
+	if input.Tags != nil {
+		for _, tag := range input.Tags {
+			if tag != nil {
+				tags = append(tags, *tag)
+			}
+		}
+	}
+
+	// Create upload video domain object
+	uploadVideo := domain.NewUploadVideo(
+		videoID,
+		input.Video.File,
+		input.Title,
+		input.Description,
+		tags,
+		input.IsAdult,
+		input.IsPrivate,
+		input.IsExternalCutout,
+		false, // isAd
+	)
+
+	// Call use case
+	response, err := r.app.Video.UploadVideo(ctx, uploadVideo, userID, thumbnailURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload video: %w", err)
+	}
+
+	// Convert tags back to pointers for GraphQL
+	var gqlTags []*string
+	for _, tag := range response.Tags {
+		tagCopy := tag
+		gqlTags = append(gqlTags, &tagCopy)
+	}
+
+	// Create processing info for GraphQL response
+	processingInfo := &model.VideoProcessingInfo{
+		ID:        domain.NewVideoProcessingInfoID(),
+		VideoID:   response.ID,
+		Status:    model.VideoProcessingStatusUploaded,
+		Progress:  0,
+		Message:   nil,
+		CreatedAt: response.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt: response.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	}
+
+	// Convert string fields to pointers
+	var videoURL *string
+	if response.VideoURL != "" {
+		url := response.VideoURL
+		videoURL = &url
+	}
+
+	var thumbnailImageURL *string
+	if response.ThumbnailImageURL != "" {
+		thumbURL := response.ThumbnailImageURL
+		thumbnailImageURL = &thumbURL
+	}
+
+	// Return GraphQL response
+	return &model.VideoPayload{
+		ID:                response.ID,
+		VideoURL:          videoURL,
+		Title:             response.Title,
+		ThumbnailImageURL: thumbnailImageURL,
+		Description:       response.Description,
+		Tags:              gqlTags,
+		IsPrivate:         response.IsPrivate,
+		IsAdult:           response.IsAdult,
+		IsExternalCutout:  response.IsExternalCutout,
+		WatchCount:        0,
+		CreatedAt:         response.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt:         response.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UploaderID:        response.UploaderID,
+		ProcessingInfo:    processingInfo,
+	}, nil
 }
 
 // IncrementWatchCount is the resolver for the IncrementWatchCount field.
@@ -91,6 +192,94 @@ func (r *queryResolver) CutVideo(ctx context.Context, input model.CutVideoInput)
 	panic(fmt.Errorf("not implemented: CutVideo - cutVideo"))
 }
 
+// VideoProcessingInfo is the resolver for the videoProcessingInfo field.
+func (r *queryResolver) VideoProcessingInfo(ctx context.Context, videoID string) (*model.VideoProcessingInfo, error) {
+	processingInfo, err := r.app.Video.GetVideoProcessingInfo(ctx, videoID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get video processing info: %w", err)
+	}
+
+	var message *string
+	if processingInfo.Message != nil {
+		message = processingInfo.Message
+	}
+
+	return &model.VideoProcessingInfo{
+		ID:        processingInfo.ID,
+		VideoID:   processingInfo.VideoID,
+		Status:    model.VideoProcessingStatus(processingInfo.Status),
+		Progress:  processingInfo.Progress,
+		Message:   message,
+		CreatedAt: processingInfo.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt: processingInfo.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	}, nil
+}
+
+// UserVideoProcessing is the resolver for the userVideoProcessing field.
+func (r *queryResolver) UserVideoProcessing(ctx context.Context, userID string) ([]*model.VideoProcessingInfo, error) {
+	processingInfos, err := r.app.Video.GetUserVideoProcessing(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user video processing info: %w", err)
+	}
+
+	var gqlProcessingInfos []*model.VideoProcessingInfo
+	for _, info := range processingInfos {
+		var message *string
+		if info.Message != nil {
+			message = info.Message
+		}
+
+		gqlProcessingInfos = append(gqlProcessingInfos, &model.VideoProcessingInfo{
+			ID:        info.ID,
+			VideoID:   info.VideoID,
+			Status:    model.VideoProcessingStatus(info.Status),
+			Progress:  info.Progress,
+			Message:   message,
+			CreatedAt: info.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UpdatedAt: info.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		})
+	}
+
+	return gqlProcessingInfos, nil
+}
+
+// VideoProcessingUpdates is the resolver for the videoProcessingUpdates field.
+func (r *subscriptionResolver) VideoProcessingUpdates(ctx context.Context, videoID string) (<-chan *model.VideoProcessingInfo, error) {
+	// TODO: Implement real-time processing updates using pub/sub
+	// For now, create a dummy channel that sends one update and closes
+	ch := make(chan *model.VideoProcessingInfo, 1)
+
+	// Send one update and close the channel
+	go func() {
+		defer close(ch)
+		ch <- &model.VideoProcessingInfo{
+			ID:        domain.NewVideoProcessingInfoID(),
+			VideoID:   videoID,
+			Status:    model.VideoProcessingStatusProcessing,
+			Progress:  50,
+			Message:   nil,
+			CreatedAt: time.Now().Format("2006-01-02T15:04:05Z07:00"),
+			UpdatedAt: time.Now().Format("2006-01-02T15:04:05Z07:00"),
+		}
+	}()
+
+	return ch, nil
+}
+
+// UserVideoProcessingUpdates is the resolver for the userVideoProcessingUpdates field.
+func (r *subscriptionResolver) UserVideoProcessingUpdates(ctx context.Context, userID string) (<-chan *model.VideoProcessingInfo, error) {
+	// TODO: Implement real-time processing updates for user videos
+	// For now, create an empty channel
+	ch := make(chan *model.VideoProcessingInfo)
+
+	go func() {
+		defer close(ch)
+		// No updates for now
+	}()
+
+	return ch, nil
+}
+
 // ID is the resolver for the id field.
 func (r *videoResolver) ID(ctx context.Context, obj *model.Video) (string, error) {
 	return obj.ID, nil
@@ -111,11 +300,15 @@ func (r *videoPayloadResolver) Uploader(ctx context.Context, obj *model.VideoPay
 	return r.getUploaderForVideo(ctx, obj.UploaderID)
 }
 
+// Subscription returns generated.SubscriptionResolver implementation.
+func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
+
 // Video returns generated.VideoResolver implementation.
 func (r *Resolver) Video() generated.VideoResolver { return &videoResolver{r} }
 
 // VideoPayload returns generated.VideoPayloadResolver implementation.
 func (r *Resolver) VideoPayload() generated.VideoPayloadResolver { return &videoPayloadResolver{r} }
 
+type subscriptionResolver struct{ *Resolver }
 type videoResolver struct{ *Resolver }
 type videoPayloadResolver struct{ *Resolver }
