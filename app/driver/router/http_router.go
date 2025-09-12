@@ -12,8 +12,10 @@ import (
 	"github.com/rs/cors"
 
 	"github.com/yuorei/video-server/app/adapter/infrastructure"
+	"github.com/yuorei/video-server/app/adapter/middleware"
 	"github.com/yuorei/video-server/app/adapter/presentation/resolver"
 	"github.com/yuorei/video-server/app/application"
+	"github.com/yuorei/video-server/app/driver/firebase"
 	flog "github.com/yuorei/video-server/app/driver/log"
 	"github.com/yuorei/video-server/app/driver/sentry"
 	"github.com/yuorei/video-server/graph/generated"
@@ -62,6 +64,16 @@ func NewHTTPRouter() {
 	}
 	slog.Info("infrastructure initialized successfully")
 
+	// Initialize Firebase Auth client
+	authClient, err := firebase.NewAuthClient(infraConfig.FirebaseCredentialsPath)
+	if err != nil {
+		slog.Error("failed to initialize Firebase Auth client", "error", err)
+		log.Fatalf("Failed to initialize Firebase Auth client: %v", err)
+	}
+	
+	// Initialize auth middleware
+	authMiddleware := middleware.NewAuthMiddleware(authClient)
+
 	app := application.NewApplication(infra)
 	resolver := resolver.NewResolver(app)
 
@@ -86,7 +98,7 @@ func NewHTTPRouter() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	mux.Handle("/query", srv)
+	mux.Handle("/query", authMiddleware.Middleware(srv))
 
 	handler := c.Handler(mux)
 

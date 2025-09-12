@@ -7,14 +7,46 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/yuorei/video-server/app/domain"
 	model "github.com/yuorei/video-server/app/domain/models"
 	"github.com/yuorei/video-server/graph/generated"
 )
 
 // RegisterUser is the resolver for the registerUser field.
 func (r *mutationResolver) RegisterUser(ctx context.Context, input model.UserInput) (*model.UserPayload, error) {
-	panic(fmt.Errorf("not implemented: RegisterUser - registerUser"))
+	// Get Firebase UID from context
+	uid, ok := ctx.Value("firebase_uid").(string)
+	if !ok {
+		return nil, fmt.Errorf("unauthorized: no firebase user")
+	}
+
+	// Create domain user
+	user := &domain.User{
+		ID:                  uid,
+		Name:                input.Name,
+		ProfileImageURL:     "",
+		IsSubscribed:        input.IsSubscribed,
+		Role:                string(input.Role),
+		Subscribechannelids: []string{},
+		CreatedAt:           time.Now(),
+		UpdatedAt:           time.Now(),
+	}
+
+	// Create user in database
+	if err := r.app.User.CreateUser(ctx, user); err != nil {
+		return nil, fmt.Errorf("failed to create user: %w", err)
+	}
+
+	return &model.UserPayload{
+		ID:                  user.ID,
+		Name:                user.Name,
+		ProfileImageURL:     user.ProfileImageURL,
+		IsSubscribed:        user.IsSubscribed,
+		Role:                input.Role,
+		Subscribechannelids: user.Subscribechannelids,
+	}, nil
 }
 
 // SubscribeChannel is the resolver for the subscribeChannel field.
