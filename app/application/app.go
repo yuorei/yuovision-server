@@ -12,7 +12,7 @@ type Application struct {
 }
 
 func NewApplication(infra *infrastructure.Infrastructure) *Application {
-	videoUseCase := NewVideoUseCase(infra.Video)
+	videoUseCase := NewVideoUseCaseWithClients(infra.Video, infra.VideoProcessing, infra.R2Client, infra.PubSubClient)
 	imageUseCase := NewImageUseCase(infra.Image)
 	userUseCase := NewUserUseCase(infra.User)
 	commentUseCase := NewCommentUseCase(infra.Comment)

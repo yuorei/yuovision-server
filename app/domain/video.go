@@ -7,6 +7,8 @@ import (
 )
 
 type (
+	VideoProcessingStatus string
+
 	Video struct {
 		ID                string
 		VideoURL          string
@@ -22,6 +24,16 @@ type (
 		CreatedAt         time.Time
 		UpdatedAt         time.Time
 		WatchCount        int
+	}
+
+	VideoProcessingInfo struct {
+		ID        string
+		VideoID   string
+		Status    VideoProcessingStatus
+		Progress  int
+		Message   *string
+		CreatedAt time.Time
+		UpdatedAt time.Time
 	}
 
 	UploadVideo struct {
@@ -62,8 +74,19 @@ type (
 	}
 )
 
+const (
+	VideoProcessingStatusUploaded   VideoProcessingStatus = "UPLOADED"
+	VideoProcessingStatusProcessing VideoProcessingStatus = "PROCESSING"
+	VideoProcessingStatusCompleted  VideoProcessingStatus = "COMPLETED"
+	VideoProcessingStatusFailed     VideoProcessingStatus = "FAILED"
+)
+
 func NewVideoID() string {
 	return fmt.Sprintf("%s%s%s", "video", IDSeparator, NewUUID())
+}
+
+func NewVideoProcessingInfoID() string {
+	return fmt.Sprintf("%s%s%s", "video_processing", IDSeparator, NewUUID())
 }
 
 func NewVideo(id string, videoURL string, thumbnailImageURL string, title string, description *string, tags []string, watchCount int, private bool, adult bool, externalCutout bool, isAd bool, uploaderID string, createdAt time.Time, updatedAt time.Time) *Video {
@@ -110,5 +133,17 @@ func NewThumbnailImage(id, contentType string) ThumbnailImage {
 	return ThumbnailImage{
 		ID:          id,
 		ContentType: contentType,
+	}
+}
+
+func NewVideoProcessingInfo(id, videoID string, status VideoProcessingStatus, progress int, message *string, createdAt, updatedAt time.Time) *VideoProcessingInfo {
+	return &VideoProcessingInfo{
+		ID:        id,
+		VideoID:   videoID,
+		Status:    status,
+		Progress:  progress,
+		Message:   message,
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
 	}
 }

@@ -9,18 +9,21 @@ import (
 	firestoreRepo "github.com/yuorei/video-server/app/adapter/infrastructure/firestore"
 	"github.com/yuorei/video-server/app/application/port"
 	"github.com/yuorei/video-server/app/driver/firebase"
+	"github.com/yuorei/video-server/app/driver/pubsub"
 	"github.com/yuorei/video-server/app/driver/storage"
 )
 
 type Infrastructure struct {
-	Video   port.VideoPort
-	User    port.UserPort
-	Comment port.CommentPort
-	Image   port.ImagePort
+	Video           port.VideoPort
+	VideoProcessing port.VideoProcessingRepository
+	User            port.UserPort
+	Comment         port.CommentPort
+	Image           port.ImagePort
 
 	FirestoreClient *firestore.Client
 	R2Client        *storage.R2Client
 	FirebaseAuth    *firebase.AuthClient
+	PubSubClient    *pubsub.Client
 }
 
 type R2Config = storage.R2Config
@@ -29,6 +32,12 @@ type InfraConfig struct {
 	FirebaseCredentialsPath string
 	FirebaseProjectID       string
 	R2Config                R2Config
+	PubSubConfig            PubSubConfig
+}
+
+type PubSubConfig struct {
+	ProjectID       string
+	CredentialsPath string
 }
 
 func NewInfrastructure(ctx context.Context, cfg InfraConfig) (*Infrastructure, error) {
@@ -50,8 +59,18 @@ func NewInfrastructure(ctx context.Context, cfg InfraConfig) (*Infrastructure, e
 		return nil, err
 	}
 
+	// Initialize Pub/Sub Client
+	pubsubClient, err := pubsub.NewClient(ctx, pubsub.Config{
+		ProjectID:       cfg.PubSubConfig.ProjectID,
+		CredentialsPath: cfg.PubSubConfig.CredentialsPath,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	// Initialize repositories
 	videoRepo := firestoreRepo.NewVideoRepository(firestoreClient.Client())
+	videoProcessingRepo := firestoreRepo.NewVideoProcessingRepository(firestoreClient.Client())
 	userRepo := firestoreRepo.NewUserRepository(firestoreClient.Client())
 	commentRepo := firestoreRepo.NewCommentRepository(firestoreClient.Client())
 
@@ -60,12 +79,14 @@ func NewInfrastructure(ctx context.Context, cfg InfraConfig) (*Infrastructure, e
 
 	return &Infrastructure{
 		Video:           videoRepo,
+		VideoProcessing: videoProcessingRepo,
 		User:            userRepo,
 		Comment:         commentRepo,
 		Image:           imageRepo,
 		FirestoreClient: firestoreClient.Client(),
 		R2Client:        r2Client,
 		FirebaseAuth:    authClient,
+		PubSubClient:    pubsubClient,
 	}, nil
 }
 
