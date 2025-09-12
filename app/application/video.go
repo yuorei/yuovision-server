@@ -64,6 +64,19 @@ func (uc *VideoUseCase) GetVideo(ctx context.Context, videoID string) (*domain.V
 	return uc.videoRepo.GetByID(ctx, videoID)
 }
 
+func (uc *VideoUseCase) GetVideosByUserID(ctx context.Context, userID string) ([]*domain.Video, error) {
+	videos, err := uc.videoRepo.GetVideosByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(videos, func(i, j int) bool {
+		return videos[j].CreatedAt.Before(videos[i].CreatedAt)
+	})
+
+	return videos, nil
+}
+
 func (uc *VideoUseCase) GetWatchCount(ctx context.Context, videoID string) (int, error) {
 	video, err := uc.videoRepo.GetByID(ctx, videoID)
 	if err != nil {

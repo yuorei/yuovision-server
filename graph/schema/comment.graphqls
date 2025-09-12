@@ -1,9 +1,11 @@
 type Comment implements Node {
   id: ID! @goField(forceResolver: true)
+  videoID: ID!
   video: Video! @goField(forceResolver: true)
   text: String!
   createdAt: DateTime!
   updatedAt: DateTime!
+  userID: ID!
   user: User! @goField(forceResolver: true)
 }
 
@@ -14,10 +16,12 @@ input PostCommentInput {
 
 type PostCommentPayload {
   id: ID!
+  videoID: ID!
   video: Video! @goField(forceResolver: true)
   text: String!
   createdAt: DateTime!
   updatedAt: DateTime!
+  userID: ID!
   user: User! @goField(forceResolver: true)
 }
 

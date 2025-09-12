@@ -6,14 +6,14 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/yuorei/video-server/graph/generated"
 )
 
 // Empty is the resolver for the _empty field.
 func (r *mutationResolver) Empty(ctx context.Context) (*string, error) {
-	panic(fmt.Errorf("not implemented: Empty - _empty"))
+	empty := ""
+	return &empty, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

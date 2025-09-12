@@ -17,10 +17,12 @@ type Node interface {
 
 type Comment struct {
 	ID        string `json:"id"`
+	VideoID   string `json:"videoID"`
 	Video     *Video `json:"video"`
 	Text      string `json:"text"`
 	CreatedAt string `json:"createdAt"`
 	UpdatedAt string `json:"updatedAt"`
+	UserID    string `json:"userID"`
 	User      *User  `json:"user"`
 }
 
@@ -53,10 +55,12 @@ type PostCommentInput struct {
 
 type PostCommentPayload struct {
 	ID        string `json:"id"`
+	VideoID   string `json:"videoID"`
 	Video     *Video `json:"video"`
 	Text      string `json:"text"`
 	CreatedAt string `json:"createdAt"`
 	UpdatedAt string `json:"updatedAt"`
+	UserID    string `json:"userID"`
 	User      *User  `json:"user"`
 }
 

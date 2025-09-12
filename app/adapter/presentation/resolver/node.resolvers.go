@@ -10,11 +10,57 @@ import (
 
 	model "github.com/yuorei/video-server/app/domain/models"
 	"github.com/yuorei/video-server/graph/generated"
+	"github.com/yuorei/video-server/lib"
 )
 
 // Node is the resolver for the node field.
 func (r *queryResolver) Node(ctx context.Context, id string) (model.Node, error) {
-	panic(fmt.Errorf("not implemented: Node - node"))
+	// Try to resolve as different node types
+	// First try as User
+	if user, err := r.app.User.GetUser(ctx, id); err == nil {
+		return &model.User{
+			ID:                  user.ID,
+			Name:                user.Name,
+			ProfileImageURL:     user.ProfileImageURL,
+			IsSubscribed:        user.IsSubscribed,
+			Role:                model.Role(user.Role),
+			Subscribechannelids: user.Subscribechannelids,
+		}, nil
+	}
+
+	// Then try as Video
+	if video, err := r.app.Video.GetVideo(ctx, id); err == nil {
+		return &model.Video{
+			ID:                video.ID,
+			VideoURL:          video.VideoURL,
+			Title:             video.Title,
+			ThumbnailImageURL: video.ThumbnailImageURL,
+			Description:       video.Description,
+			Tags:              lib.ConvertStringSliceToPointerSlice(video.Tags),
+			IsPrivate:         video.IsPrivate,
+			IsAdult:           video.IsAdult,
+			IsExternalCutout:  video.IsExternalCutout,
+			WatchCount:        video.WatchCount,
+			CreatedAt:         video.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UpdatedAt:         video.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UploaderID:        video.UploaderID,
+			Uploader:          nil,
+		}, nil
+	}
+
+	// Finally try as Comment
+	if comment, err := r.app.Comment.GetComment(ctx, id); err == nil {
+		return &model.Comment{
+			ID:        comment.ID,
+			Text:      comment.Text,
+			CreatedAt: comment.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UpdatedAt: comment.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			VideoID:   comment.VideoID,
+			UserID:    comment.UserID,
+		}, nil
+	}
+
+	return nil, fmt.Errorf("node not found: %s", id)
 }
 
 // Query returns generated.QueryResolver implementation.

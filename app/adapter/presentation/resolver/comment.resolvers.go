@@ -7,49 +7,153 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/yuorei/video-server/app/domain"
 	model "github.com/yuorei/video-server/app/domain/models"
 	"github.com/yuorei/video-server/graph/generated"
+	"github.com/yuorei/video-server/lib"
 )
 
 // ID is the resolver for the id field.
 func (r *commentResolver) ID(ctx context.Context, obj *model.Comment) (string, error) {
-	panic(fmt.Errorf("not implemented: ID - id"))
+	return obj.ID, nil
 }
 
 // Video is the resolver for the video field.
 func (r *commentResolver) Video(ctx context.Context, obj *model.Comment) (*model.Video, error) {
-	panic(fmt.Errorf("not implemented: Video - video"))
+	// Use VideoID directly from obj to avoid N+1 query issue
+	domainVideo, err := r.app.Video.GetVideo(ctx, obj.VideoID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get video: %w", err)
+	}
+
+	return &model.Video{
+		ID:                domainVideo.ID,
+		VideoURL:          domainVideo.VideoURL,
+		Title:             domainVideo.Title,
+		ThumbnailImageURL: domainVideo.ThumbnailImageURL,
+		Description:       domainVideo.Description,
+		Tags:              lib.ConvertStringSliceToPointerSlice(domainVideo.Tags),
+		IsPrivate:         domainVideo.IsPrivate,
+		IsAdult:           domainVideo.IsAdult,
+		IsExternalCutout:  domainVideo.IsExternalCutout,
+		WatchCount:        domainVideo.WatchCount,
+		CreatedAt:         domainVideo.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt:         domainVideo.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UploaderID:        domainVideo.UploaderID,
+		Uploader:          nil,
+	}, nil
 }
 
 // User is the resolver for the user field.
 func (r *commentResolver) User(ctx context.Context, obj *model.Comment) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	// Use UserID directly from obj to avoid N+1 query issue
+	return r.getUploaderForVideo(ctx, obj.UserID)
 }
 
 // PostComment is the resolver for the postComment field.
 func (r *mutationResolver) PostComment(ctx context.Context, input model.PostCommentInput) (*model.PostCommentPayload, error) {
-	panic(fmt.Errorf("not implemented: PostComment - postComment"))
+	userID := r.getCurrentUserID(ctx)
+	if userID == "" {
+		return nil, fmt.Errorf("user not authenticated")
+	}
+
+	// Create domain comment
+	comment := &domain.Comment{
+		ID:        domain.NewCommentID(),
+		VideoID:   input.VideoID,
+		UserID:    userID,
+		Text:      input.Text,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	// Create comment in database
+	if err := r.app.Comment.CreateComment(ctx, comment); err != nil {
+		return nil, fmt.Errorf("failed to create comment: %w", err)
+	}
+
+	return &model.PostCommentPayload{
+		ID:        comment.ID,
+		VideoID:   comment.VideoID,
+		Text:      comment.Text,
+		CreatedAt: comment.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt: comment.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UserID:    comment.UserID,
+	}, nil
 }
 
 // Video is the resolver for the video field.
 func (r *postCommentPayloadResolver) Video(ctx context.Context, obj *model.PostCommentPayload) (*model.Video, error) {
-	panic(fmt.Errorf("not implemented: Video - video"))
+	// Use VideoID directly from obj to avoid N+1 query issue
+	domainVideo, err := r.app.Video.GetVideo(ctx, obj.VideoID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get video: %w", err)
+	}
+
+	return &model.Video{
+		ID:                domainVideo.ID,
+		VideoURL:          domainVideo.VideoURL,
+		Title:             domainVideo.Title,
+		ThumbnailImageURL: domainVideo.ThumbnailImageURL,
+		Description:       domainVideo.Description,
+		Tags:              lib.ConvertStringSliceToPointerSlice(domainVideo.Tags),
+		IsPrivate:         domainVideo.IsPrivate,
+		IsAdult:           domainVideo.IsAdult,
+		IsExternalCutout:  domainVideo.IsExternalCutout,
+		WatchCount:        domainVideo.WatchCount,
+		CreatedAt:         domainVideo.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt:         domainVideo.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UploaderID:        domainVideo.UploaderID,
+		Uploader:          nil,
+	}, nil
 }
 
 // User is the resolver for the user field.
 func (r *postCommentPayloadResolver) User(ctx context.Context, obj *model.PostCommentPayload) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	// Use UserID directly from obj to avoid N+1 query issue
+	return r.getUploaderForVideo(ctx, obj.UserID)
 }
 
 // CommentsByVideo is the resolver for the commentsByVideo field.
 func (r *queryResolver) CommentsByVideo(ctx context.Context, videoID string) ([]*model.Comment, error) {
-	panic(fmt.Errorf("not implemented: CommentsByVideo - commentsByVideo"))
+	domainComments, err := r.app.Comment.GetCommentsByVideoID(ctx, videoID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get comments: %w", err)
+	}
+
+	var gqlComments []*model.Comment
+	for _, domainComment := range domainComments {
+		gqlComment := &model.Comment{
+			ID:        domainComment.ID,
+			VideoID:   domainComment.VideoID,
+			Text:      domainComment.Text,
+			CreatedAt: domainComment.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UpdatedAt: domainComment.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UserID:    domainComment.UserID,
+		}
+		gqlComments = append(gqlComments, gqlComment)
+	}
+
+	return gqlComments, nil
 }
 
 // Comment is the resolver for the comment field.
 func (r *queryResolver) Comment(ctx context.Context, id string) (*model.Comment, error) {
-	panic(fmt.Errorf("not implemented: Comment - comment"))
+	domainComment, err := r.app.Comment.GetComment(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get comment: %w", err)
+	}
+
+	return &model.Comment{
+		ID:        domainComment.ID,
+		VideoID:   domainComment.VideoID,
+		Text:      domainComment.Text,
+		CreatedAt: domainComment.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt: domainComment.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UserID:    domainComment.UserID,
+	}, nil
 }
 
 // Comment returns generated.CommentResolver implementation.
