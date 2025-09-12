@@ -48,7 +48,7 @@ func NewInfrastructure(ctx context.Context, cfg InfraConfig) (*Infrastructure, e
 	}
 
 	// Initialize Firebase Auth
-	authClient, err := firebase.NewAuthClient(cfg.FirebaseCredentialsPath)
+	authClient, err := firebase.NewAuthClient(cfg.FirebaseProjectID, cfg.FirebaseCredentialsPath)
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package pubsub
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/option"
@@ -18,12 +19,20 @@ type Config struct {
 }
 
 func NewClient(ctx context.Context, cfg Config) (*Client, error) {
+	slog.Info("initializing Pub/Sub client", "project_id", cfg.ProjectID, "credentials_path", cfg.CredentialsPath)
+	
+	if cfg.ProjectID == "" {
+		return nil, fmt.Errorf("pubsub: projectID string is empty")
+	}
+	
 	var client *pubsub.Client
 	var err error
 
 	if cfg.CredentialsPath != "" {
+		slog.Info("using credentials file for Pub/Sub")
 		client, err = pubsub.NewClient(ctx, cfg.ProjectID, option.WithCredentialsFile(cfg.CredentialsPath))
 	} else {
+		slog.Info("using Application Default Credentials for Pub/Sub")
 		client, err = pubsub.NewClient(ctx, cfg.ProjectID)
 	}
 
@@ -31,6 +40,7 @@ func NewClient(ctx context.Context, cfg Config) (*Client, error) {
 		return nil, fmt.Errorf("failed to create pub/sub client: %w", err)
 	}
 
+	slog.Info("Pub/Sub client initialized successfully")
 	return &Client{client: client}, nil
 }
 

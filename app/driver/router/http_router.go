@@ -41,9 +41,17 @@ func NewHTTPRouter() {
 	slog.Info("using port", "port", port)
 
 	// Initialize new infrastructure with Firebase and R2
+	googleCloudProjectID := os.Getenv("GOOGLE_CLOUD_PROJECT_ID")
+	firebaseProjectID := os.Getenv("FIREBASE_PROJECT_ID")
+	
+	slog.Info("reading environment variables", 
+		"GOOGLE_CLOUD_PROJECT_ID", googleCloudProjectID,
+		"FIREBASE_PROJECT_ID", firebaseProjectID,
+		"GOOGLE_APPLICATION_CREDENTIALS", os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+	
 	infraConfig := infrastructure.InfraConfig{
 		FirebaseCredentialsPath: os.Getenv("FIREBASE_CREDENTIALS_PATH"),
-		FirebaseProjectID:       os.Getenv("FIREBASE_PROJECT_ID"),
+		FirebaseProjectID:       firebaseProjectID,
 		R2Config: infrastructure.R2Config{
 			AccessKeyID:     os.Getenv("R2_ACCESS_KEY_ID"),
 			SecretAccessKey: os.Getenv("R2_SECRET_ACCESS_KEY"),
@@ -51,12 +59,15 @@ func NewHTTPRouter() {
 			BucketName:      os.Getenv("R2_BUCKET_NAME"),
 		},
 		PubSubConfig: infrastructure.PubSubConfig{
-			ProjectID:       os.Getenv("GOOGLE_CLOUD_PROJECT_ID"),
+			ProjectID:       googleCloudProjectID,
 			CredentialsPath: os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"),
 		},
 	}
 
-	slog.Info("initializing infrastructure")
+	slog.Info("initializing infrastructure", 
+		"firebase_project_id", infraConfig.FirebaseProjectID,
+		"pubsub_project_id", infraConfig.PubSubConfig.ProjectID,
+		"gcp_project_id", infraConfig.R2Config.AccountID)
 	infra, err := infrastructure.NewInfrastructure(context.Background(), infraConfig)
 	if err != nil {
 		slog.Error("failed to initialize infrastructure", "error", err)
@@ -65,7 +76,7 @@ func NewHTTPRouter() {
 	slog.Info("infrastructure initialized successfully")
 
 	// Initialize Firebase Auth client
-	authClient, err := firebase.NewAuthClient(infraConfig.FirebaseCredentialsPath)
+	authClient, err := firebase.NewAuthClient(infraConfig.FirebaseProjectID, infraConfig.FirebaseCredentialsPath)
 	if err != nil {
 		slog.Error("failed to initialize Firebase Auth client", "error", err)
 		log.Fatalf("Failed to initialize Firebase Auth client: %v", err)

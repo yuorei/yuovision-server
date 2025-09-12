@@ -13,20 +13,25 @@ type AuthClient struct {
 	client *auth.Client
 }
 
-func NewAuthClient(credentialsPath string) (*AuthClient, error) {
+func NewAuthClient(projectID, credentialsPath string) (*AuthClient, error) {
 	var app *firebase.App
 	var err error
+
+	// Configure Firebase project
+	config := &firebase.Config{
+		ProjectID: projectID,
+	}
 
 	if credentialsPath != "" {
 		// Use credentials file if provided
 		opt := option.WithCredentialsFile(credentialsPath)
-		app, err = firebase.NewApp(context.Background(), nil, opt)
+		app, err = firebase.NewApp(context.Background(), config, opt)
 		if err != nil {
 			return nil, fmt.Errorf("error initializing app with credentials file %s: %v", credentialsPath, err)
 		}
 	} else {
 		// Use Application Default Credentials (ADC) for Cloud Run
-		app, err = firebase.NewApp(context.Background(), nil)
+		app, err = firebase.NewApp(context.Background(), config)
 		if err != nil {
 			return nil, fmt.Errorf("error initializing app with ADC: %v", err)
 		}
