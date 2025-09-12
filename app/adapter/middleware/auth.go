@@ -45,7 +45,7 @@ func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
-		
+
 		slog.Debug("Firebase token verified successfully", "uid", token.UID)
 
 		// Add Firebase UID to context
