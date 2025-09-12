@@ -3,7 +3,9 @@ package infrastructure
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"log/slog"
 
 	"cloud.google.com/go/firestore"
 	firestoreRepo "github.com/yuorei/video-server/app/adapter/infrastructure/firestore"
@@ -60,12 +62,20 @@ func NewInfrastructure(ctx context.Context, cfg InfraConfig) (*Infrastructure, e
 	}
 
 	// Initialize Pub/Sub Client
-	pubsubClient, err := pubsub.NewClient(ctx, pubsub.Config{
-		ProjectID:       cfg.PubSubConfig.ProjectID,
-		CredentialsPath: cfg.PubSubConfig.CredentialsPath,
-	})
-	if err != nil {
-		return nil, err
+	var pubsubClient *pubsub.Client
+	if cfg.PubSubConfig.ProjectID != "" {
+		client, err := pubsub.NewClient(ctx, pubsub.Config{
+			ProjectID:       cfg.PubSubConfig.ProjectID,
+			CredentialsPath: cfg.PubSubConfig.CredentialsPath,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize Pub/Sub client with project ID '%s': %w", cfg.PubSubConfig.ProjectID, err)
+		}
+		pubsubClient = client
+	} else {
+		slog.Warn("GOOGLE_CLOUD_PROJECT_ID is empty, skipping Pub/Sub client initialization")
+		// Create a dummy client or handle gracefully
+		pubsubClient = nil
 	}
 
 	// Initialize repositories
