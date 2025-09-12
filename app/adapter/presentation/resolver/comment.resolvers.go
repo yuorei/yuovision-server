@@ -15,11 +15,6 @@ import (
 	"github.com/yuorei/video-server/lib"
 )
 
-const (
-	// commentContextKeyPrefix is used for storing comment data in context to avoid N+1 queries
-	commentContextKeyPrefix = "comment_"
-)
-
 // ID is the resolver for the id field.
 func (r *commentResolver) ID(ctx context.Context, obj *model.Comment) (string, error) {
 	return obj.ID, nil

@@ -6,6 +6,11 @@ import (
 	model "github.com/yuorei/video-server/app/domain/models"
 )
 
+const (
+	// commentContextKeyPrefix is used for storing comment data in context to avoid N+1 queries
+	commentContextKeyPrefix = "comment_"
+)
+
 // getUploaderForVideo is a helper function to get uploader information by UploaderID
 // This eliminates code duplication between Video and VideoPayload uploader resolvers
 func (r *Resolver) getUploaderForVideo(ctx context.Context, uploaderID string) (*model.User, error) {
