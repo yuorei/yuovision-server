@@ -70,7 +70,7 @@ func NewHTTPRouter() {
 		slog.Error("failed to initialize Firebase Auth client", "error", err)
 		log.Fatalf("Failed to initialize Firebase Auth client: %v", err)
 	}
-	
+
 	// Initialize auth middleware
 	authMiddleware := middleware.NewAuthMiddleware(authClient)
 

@@ -35,7 +35,7 @@ func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 		}
 
 		idToken := strings.TrimPrefix(authHeader, "Bearer ")
-		
+
 		// Verify Firebase ID token
 		token, err := am.authClient.VerifyIDToken(r.Context(), idToken)
 		if err != nil {
