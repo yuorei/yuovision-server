@@ -55,6 +55,8 @@ func (r *queryResolver) Node(ctx context.Context, id string) (model.Node, error)
 			Text:      comment.Text,
 			CreatedAt: comment.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 			UpdatedAt: comment.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			VideoID:   comment.VideoID,
+			UserID:    comment.UserID,
 		}, nil
 	}
 
