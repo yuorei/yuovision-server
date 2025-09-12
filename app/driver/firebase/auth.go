@@ -21,13 +21,15 @@ func NewAuthClient(credentialsPath string) (*AuthClient, error) {
 		// Use credentials file if provided
 		opt := option.WithCredentialsFile(credentialsPath)
 		app, err = firebase.NewApp(context.Background(), nil, opt)
+		if err != nil {
+			return nil, fmt.Errorf("error initializing app with credentials file %s: %v", credentialsPath, err)
+		}
 	} else {
 		// Use Application Default Credentials (ADC) for Cloud Run
 		app, err = firebase.NewApp(context.Background(), nil)
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("error initializing app: %v", err)
+		if err != nil {
+			return nil, fmt.Errorf("error initializing app with ADC: %v", err)
+		}
 	}
 
 	client, err := app.Auth(context.Background())

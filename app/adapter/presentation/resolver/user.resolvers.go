@@ -19,7 +19,11 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.UserInp
 	// Get Firebase UID from context
 	uid, ok := ctx.Value("firebase_uid").(string)
 	if !ok {
-		return nil, fmt.Errorf("unauthorized: no firebase user")
+		// Check if userID is available as fallback
+		uid, ok = ctx.Value("userID").(string)
+		if !ok {
+			return nil, fmt.Errorf("unauthorized: no firebase user")
+		}
 	}
 
 	// Create domain user

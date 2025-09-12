@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -37,11 +38,15 @@ func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 		idToken := strings.TrimPrefix(authHeader, "Bearer ")
 
 		// Verify Firebase ID token
+		slog.Debug("attempting to verify Firebase ID token", "token_length", len(idToken))
 		token, err := am.authClient.VerifyIDToken(r.Context(), idToken)
 		if err != nil {
+			slog.Error("Firebase token verification failed", "error", err, "token_prefix", idToken[:min(10, len(idToken))])
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
+		
+		slog.Debug("Firebase token verified successfully", "uid", token.UID)
 
 		// Add Firebase UID to context
 		ctx := context.WithValue(r.Context(), "firebase_uid", token.UID)
