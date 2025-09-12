@@ -43,12 +43,12 @@ func NewHTTPRouter() {
 	// Initialize new infrastructure with Firebase and R2
 	googleCloudProjectID := os.Getenv("GOOGLE_CLOUD_PROJECT_ID")
 	firebaseProjectID := os.Getenv("FIREBASE_PROJECT_ID")
-	
-	slog.Info("reading environment variables", 
+
+	slog.Info("reading environment variables",
 		"GOOGLE_CLOUD_PROJECT_ID", googleCloudProjectID,
 		"FIREBASE_PROJECT_ID", firebaseProjectID,
 		"GOOGLE_APPLICATION_CREDENTIALS", os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-	
+
 	infraConfig := infrastructure.InfraConfig{
 		FirebaseCredentialsPath: os.Getenv("FIREBASE_CREDENTIALS_PATH"),
 		FirebaseProjectID:       firebaseProjectID,
@@ -64,7 +64,7 @@ func NewHTTPRouter() {
 		},
 	}
 
-	slog.Info("initializing infrastructure", 
+	slog.Info("initializing infrastructure",
 		"firebase_project_id", infraConfig.FirebaseProjectID,
 		"pubsub_project_id", infraConfig.PubSubConfig.ProjectID,
 		"gcp_project_id", infraConfig.R2Config.AccountID)

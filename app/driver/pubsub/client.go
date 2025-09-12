@@ -20,11 +20,11 @@ type Config struct {
 
 func NewClient(ctx context.Context, cfg Config) (*Client, error) {
 	slog.Info("initializing Pub/Sub client", "project_id", cfg.ProjectID, "credentials_path", cfg.CredentialsPath)
-	
+
 	if cfg.ProjectID == "" {
 		return nil, fmt.Errorf("pubsub: projectID string is empty")
 	}
-	
+
 	var client *pubsub.Client
 	var err error
 
