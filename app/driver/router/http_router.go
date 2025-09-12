@@ -48,6 +48,10 @@ func NewHTTPRouter() {
 			AccountID:       os.Getenv("R2_ACCOUNT_ID"),
 			BucketName:      os.Getenv("R2_BUCKET_NAME"),
 		},
+		PubSubConfig: infrastructure.PubSubConfig{
+			ProjectID:       os.Getenv("GOOGLE_CLOUD_PROJECT_ID"),
+			CredentialsPath: os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+		},
 	}
 
 	slog.Info("initializing infrastructure")
