@@ -15,6 +15,11 @@ import (
 	"github.com/yuorei/video-server/lib"
 )
 
+const (
+	// commentContextKeyPrefix is used for storing comment data in context to avoid N+1 queries
+	commentContextKeyPrefix = "comment_"
+)
+
 // ID is the resolver for the id field.
 func (r *commentResolver) ID(ctx context.Context, obj *model.Comment) (string, error) {
 	return obj.ID, nil
@@ -22,14 +27,8 @@ func (r *commentResolver) ID(ctx context.Context, obj *model.Comment) (string, e
 
 // Video is the resolver for the video field.
 func (r *commentResolver) Video(ctx context.Context, obj *model.Comment) (*model.Video, error) {
-	// TODO: Consider adding VideoID field to GraphQL Comment model or implement DataLoader pattern
-	// to avoid N+1 query issue. Current implementation requires additional DB query.
-	domainComment, err := r.app.Comment.GetComment(ctx, obj.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get comment for video resolution: %w", err)
-	}
-
-	domainVideo, err := r.app.Video.GetVideo(ctx, domainComment.VideoID)
+	// Use VideoID directly from obj to avoid N+1 query issue
+	domainVideo, err := r.app.Video.GetVideo(ctx, obj.VideoID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get video: %w", err)
 	}
@@ -54,13 +53,8 @@ func (r *commentResolver) Video(ctx context.Context, obj *model.Comment) (*model
 
 // User is the resolver for the user field.
 func (r *commentResolver) User(ctx context.Context, obj *model.Comment) (*model.User, error) {
-	// TODO: Consider adding UserID field to GraphQL Comment model or implement DataLoader pattern
-	// to avoid N+1 query issue. Current implementation requires additional DB query.
-	domainComment, err := r.app.Comment.GetComment(ctx, obj.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get comment for user resolution: %w", err)
-	}
-	return r.getUploaderForVideo(ctx, domainComment.UserID)
+	// Use UserID directly from obj to avoid N+1 query issue
+	return r.getUploaderForVideo(ctx, obj.UserID)
 }
 
 // PostComment is the resolver for the postComment field.
@@ -85,51 +79,20 @@ func (r *mutationResolver) PostComment(ctx context.Context, input model.PostComm
 		return nil, fmt.Errorf("failed to create comment: %w", err)
 	}
 
-	// Store the comment information in context for efficient resolver access
-	ctx = context.WithValue(ctx, "comment_"+comment.ID, comment)
-
 	return &model.PostCommentPayload{
 		ID:        comment.ID,
+		VideoID:   comment.VideoID,
 		Text:      comment.Text,
 		CreatedAt: comment.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt: comment.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UserID:    comment.UserID,
 	}, nil
 }
 
 // Video is the resolver for the video field.
 func (r *postCommentPayloadResolver) Video(ctx context.Context, obj *model.PostCommentPayload) (*model.Video, error) {
-	// Try to get cached comment from context first
-	if cachedComment, ok := ctx.Value("comment_" + obj.ID).(*domain.Comment); ok {
-		domainVideo, err := r.app.Video.GetVideo(ctx, cachedComment.VideoID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get video: %w", err)
-		}
-
-		return &model.Video{
-			ID:                domainVideo.ID,
-			VideoURL:          domainVideo.VideoURL,
-			Title:             domainVideo.Title,
-			ThumbnailImageURL: domainVideo.ThumbnailImageURL,
-			Description:       domainVideo.Description,
-			Tags:              lib.ConvertStringSliceToPointerSlice(domainVideo.Tags),
-			IsPrivate:         domainVideo.IsPrivate,
-			IsAdult:           domainVideo.IsAdult,
-			IsExternalCutout:  domainVideo.IsExternalCutout,
-			WatchCount:        domainVideo.WatchCount,
-			CreatedAt:         domainVideo.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			UpdatedAt:         domainVideo.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			UploaderID:        domainVideo.UploaderID,
-			Uploader:          nil,
-		}, nil
-	}
-
-	// Fallback to database query if not in context
-	domainComment, err := r.app.Comment.GetComment(ctx, obj.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get comment for video resolution: %w", err)
-	}
-
-	domainVideo, err := r.app.Video.GetVideo(ctx, domainComment.VideoID)
+	// Use VideoID directly from obj to avoid N+1 query issue
+	domainVideo, err := r.app.Video.GetVideo(ctx, obj.VideoID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get video: %w", err)
 	}
@@ -154,17 +117,8 @@ func (r *postCommentPayloadResolver) Video(ctx context.Context, obj *model.PostC
 
 // User is the resolver for the user field.
 func (r *postCommentPayloadResolver) User(ctx context.Context, obj *model.PostCommentPayload) (*model.User, error) {
-	// Try to get cached comment from context first
-	if cachedComment, ok := ctx.Value("comment_" + obj.ID).(*domain.Comment); ok {
-		return r.getUploaderForVideo(ctx, cachedComment.UserID)
-	}
-
-	// Fallback to database query if not in context
-	domainComment, err := r.app.Comment.GetComment(ctx, obj.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get comment for user resolution: %w", err)
-	}
-	return r.getUploaderForVideo(ctx, domainComment.UserID)
+	// Use UserID directly from obj to avoid N+1 query issue
+	return r.getUploaderForVideo(ctx, obj.UserID)
 }
 
 // CommentsByVideo is the resolver for the commentsByVideo field.
@@ -178,9 +132,11 @@ func (r *queryResolver) CommentsByVideo(ctx context.Context, videoID string) ([]
 	for _, domainComment := range domainComments {
 		gqlComment := &model.Comment{
 			ID:        domainComment.ID,
+			VideoID:   domainComment.VideoID,
 			Text:      domainComment.Text,
 			CreatedAt: domainComment.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 			UpdatedAt: domainComment.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UserID:    domainComment.UserID,
 		}
 		gqlComments = append(gqlComments, gqlComment)
 	}
@@ -197,9 +153,11 @@ func (r *queryResolver) Comment(ctx context.Context, id string) (*model.Comment,
 
 	return &model.Comment{
 		ID:        domainComment.ID,
+		VideoID:   domainComment.VideoID,
 		Text:      domainComment.Text,
 		CreatedAt: domainComment.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 		UpdatedAt: domainComment.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UserID:    domainComment.UserID,
 	}, nil
 }
 
