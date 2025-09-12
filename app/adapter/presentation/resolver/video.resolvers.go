@@ -121,7 +121,19 @@ func (r *mutationResolver) UploadVideo(ctx context.Context, input model.UploadVi
 
 // IncrementWatchCount is the resolver for the IncrementWatchCount field.
 func (r *mutationResolver) IncrementWatchCount(ctx context.Context, input model.IncrementWatchCountInput) (*model.IncrementWatchCountPayload, error) {
-	panic(fmt.Errorf("not implemented: IncrementWatchCount - IncrementWatchCount"))
+	userID := r.getCurrentUserID(ctx)
+	if userID == "" {
+		return nil, fmt.Errorf("user not authenticated")
+	}
+
+	newWatchCount, err := r.app.Video.IncrementWatchCount(ctx, input.VideoID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to increment watch count: %w", err)
+	}
+
+	return &model.IncrementWatchCountPayload{
+		WatchCount: newWatchCount,
+	}, nil
 }
 
 // Videos is the resolver for the videos field.
@@ -189,7 +201,19 @@ func (r *queryResolver) WatchCount(ctx context.Context, videoID string) (int, er
 
 // CutVideo is the resolver for the cutVideo field.
 func (r *queryResolver) CutVideo(ctx context.Context, input model.CutVideoInput) (*model.CutVideoPayload, error) {
-	panic(fmt.Errorf("not implemented: CutVideo - cutVideo"))
+	userID := r.getCurrentUserID(ctx)
+	if userID == "" {
+		return nil, fmt.Errorf("user not authenticated")
+	}
+
+	cutVideoURL, err := r.app.Video.CutVideo(ctx, input.VideoID, input.StartTime, input.EndTime)
+	if err != nil {
+		return nil, fmt.Errorf("failed to cut video: %w", err)
+	}
+
+	return &model.CutVideoPayload{
+		CutVideoURL: cutVideoURL,
+	}, nil
 }
 
 // VideoProcessingInfo is the resolver for the videoProcessingInfo field.

@@ -140,6 +140,49 @@ func (r *VideoRepository) GetAll(ctx context.Context) ([]*domain.Video, error) {
 	return videos, nil
 }
 
+func (r *VideoRepository) GetVideosByUserID(ctx context.Context, userID string) ([]*domain.Video, error) {
+	iter := r.client.Collection(r.collection).
+		Where("uploader_id", "==", userID).
+		Documents(ctx)
+
+	var videos []*domain.Video
+	for {
+		doc, err := iter.Next()
+		if err != nil {
+			if err == iterator.Done {
+				break
+			}
+			return nil, fmt.Errorf("failed to iterate user videos: %w", err)
+		}
+
+		var videoDoc VideoDoc
+		if err := doc.DataTo(&videoDoc); err != nil {
+			slog.Warn("Failed to unmarshal video document", "error", err, "document_id", doc.Ref.ID)
+			continue // Skip invalid documents
+		}
+
+		video := &domain.Video{
+			ID:                videoDoc.ID,
+			VideoURL:          videoDoc.VideoURL,
+			ThumbnailImageURL: videoDoc.ThumbnailImageURL,
+			Title:             videoDoc.Title,
+			Description:       videoDoc.Description,
+			Tags:              videoDoc.Tags,
+			WatchCount:        videoDoc.WatchCount,
+			IsPrivate:         videoDoc.IsPrivate,
+			IsAdult:           videoDoc.IsAdult,
+			IsExternalCutout:  videoDoc.IsExternalCutout,
+			IsAd:              videoDoc.IsAd,
+			UploaderID:        videoDoc.UploaderID,
+			CreatedAt:         videoDoc.CreatedAt,
+			UpdatedAt:         videoDoc.UpdatedAt,
+		}
+		videos = append(videos, video)
+	}
+
+	return videos, nil
+}
+
 func (r *VideoRepository) Update(ctx context.Context, video *domain.Video) error {
 	doc := VideoDoc{
 		ID:                video.ID,

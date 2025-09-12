@@ -12,6 +12,7 @@ type VideoPort interface {
 	Create(context.Context, *domain.Video) error
 	GetByID(context.Context, string) (*domain.Video, error)
 	GetAll(context.Context) ([]*domain.Video, error)
+	GetVideosByUserID(context.Context, string) ([]*domain.Video, error)
 	Update(context.Context, *domain.Video) error
 	Delete(context.Context, string) error
 }

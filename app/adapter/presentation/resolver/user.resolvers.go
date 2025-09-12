@@ -12,6 +12,7 @@ import (
 	"github.com/yuorei/video-server/app/domain"
 	model "github.com/yuorei/video-server/app/domain/models"
 	"github.com/yuorei/video-server/graph/generated"
+	"github.com/yuorei/video-server/lib"
 )
 
 // RegisterUser is the resolver for the registerUser field.
@@ -55,37 +56,166 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.UserInp
 
 // SubscribeChannel is the resolver for the subscribeChannel field.
 func (r *mutationResolver) SubscribeChannel(ctx context.Context, input *model.SubscribeChannelInput) (*model.SubscriptionPayload, error) {
-	panic(fmt.Errorf("not implemented: SubscribeChannel - subscribeChannel"))
+	userID := r.getCurrentUserID(ctx)
+	if userID == "" {
+		return &model.SubscriptionPayload{IsSuccess: false}, fmt.Errorf("user not authenticated")
+	}
+
+	// Get current user
+	user, err := r.app.User.GetUser(ctx, userID)
+	if err != nil {
+		return &model.SubscriptionPayload{IsSuccess: false}, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	// Check if already subscribed
+	for _, channelID := range user.Subscribechannelids {
+		if channelID == input.ChannelID {
+			return &model.SubscriptionPayload{IsSuccess: true}, nil // Already subscribed
+		}
+	}
+
+	// Add subscription
+	user.Subscribechannelids = append(user.Subscribechannelids, input.ChannelID)
+	user.UpdatedAt = time.Now()
+
+	// Update user in database
+	err = r.app.User.UpdateUser(ctx, user)
+	if err != nil {
+		return &model.SubscriptionPayload{IsSuccess: false}, fmt.Errorf("failed to update user: %w", err)
+	}
+
+	return &model.SubscriptionPayload{IsSuccess: true}, nil
 }
 
 // UnSubscribeChannel is the resolver for the unSubscribeChannel field.
 func (r *mutationResolver) UnSubscribeChannel(ctx context.Context, input *model.SubscribeChannelInput) (*model.SubscriptionPayload, error) {
-	panic(fmt.Errorf("not implemented: UnSubscribeChannel - unSubscribeChannel"))
+	userID := r.getCurrentUserID(ctx)
+	if userID == "" {
+		return &model.SubscriptionPayload{IsSuccess: false}, fmt.Errorf("user not authenticated")
+	}
+
+	// Get current user
+	user, err := r.app.User.GetUser(ctx, userID)
+	if err != nil {
+		return &model.SubscriptionPayload{IsSuccess: false}, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	// Remove subscription
+	var updatedSubscriptions []string
+	for _, channelID := range user.Subscribechannelids {
+		if channelID != input.ChannelID {
+			updatedSubscriptions = append(updatedSubscriptions, channelID)
+		}
+	}
+
+	user.Subscribechannelids = updatedSubscriptions
+	user.UpdatedAt = time.Now()
+
+	// Update user in database
+	err = r.app.User.UpdateUser(ctx, user)
+	if err != nil {
+		return &model.SubscriptionPayload{IsSuccess: false}, fmt.Errorf("failed to update user: %w", err)
+	}
+
+	return &model.SubscriptionPayload{IsSuccess: true}, nil
 }
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented: Users - users"))
+	domainUsers, err := r.app.User.GetUsers(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users: %w", err)
+	}
+
+	var gqlUsers []*model.User
+	for _, domainUser := range domainUsers {
+		gqlUser := &model.User{
+			ID:                  domainUser.ID,
+			Name:                domainUser.Name,
+			ProfileImageURL:     domainUser.ProfileImageURL,
+			IsSubscribed:        domainUser.IsSubscribed,
+			Role:                model.Role(domainUser.Role),
+			Subscribechannelids: domainUser.Subscribechannelids,
+		}
+		gqlUsers = append(gqlUsers, gqlUser)
+	}
+
+	return gqlUsers, nil
 }
 
 // User is the resolver for the user field.
 func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: User - user"))
+	domainUser, err := r.app.User.GetUser(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	return &model.User{
+		ID:                  domainUser.ID,
+		Name:                domainUser.Name,
+		ProfileImageURL:     domainUser.ProfileImageURL,
+		IsSubscribed:        domainUser.IsSubscribed,
+		Role:                model.Role(domainUser.Role),
+		Subscribechannelids: domainUser.Subscribechannelids,
+	}, nil
 }
 
 // UserByAuth is the resolver for the userByAuth field.
 func (r *queryResolver) UserByAuth(ctx context.Context) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: UserByAuth - userByAuth"))
+	userID := r.getCurrentUserID(ctx)
+	if userID == "" {
+		return nil, fmt.Errorf("user not authenticated")
+	}
+
+	domainUser, err := r.app.User.GetUser(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	return &model.User{
+		ID:                  domainUser.ID,
+		Name:                domainUser.Name,
+		ProfileImageURL:     domainUser.ProfileImageURL,
+		IsSubscribed:        domainUser.IsSubscribed,
+		Role:                model.Role(domainUser.Role),
+		Subscribechannelids: domainUser.Subscribechannelids,
+	}, nil
 }
 
 // ID is the resolver for the id field.
 func (r *userResolver) ID(ctx context.Context, obj *model.User) (string, error) {
-	panic(fmt.Errorf("not implemented: ID - id"))
+	return obj.ID, nil
 }
 
 // Videos is the resolver for the videos field.
 func (r *userResolver) Videos(ctx context.Context, obj *model.User) ([]*model.Video, error) {
-	panic(fmt.Errorf("not implemented: Videos - videos"))
+	domainVideos, err := r.app.Video.GetVideosByUserID(ctx, obj.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get videos by user: %w", err)
+	}
+
+	var gqlVideos []*model.Video
+	for _, domainVideo := range domainVideos {
+		gqlVideo := &model.Video{
+			ID:                domainVideo.ID,
+			VideoURL:          domainVideo.VideoURL,
+			Title:             domainVideo.Title,
+			ThumbnailImageURL: domainVideo.ThumbnailImageURL,
+			Description:       domainVideo.Description,
+			Tags:              lib.ConvertStringSliceToPointerSlice(domainVideo.Tags),
+			IsPrivate:         domainVideo.IsPrivate,
+			IsAdult:           domainVideo.IsAdult,
+			IsExternalCutout:  domainVideo.IsExternalCutout,
+			WatchCount:        domainVideo.WatchCount,
+			CreatedAt:         domainVideo.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UpdatedAt:         domainVideo.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UploaderID:        domainVideo.UploaderID,
+			Uploader:          nil,
+		}
+		gqlVideos = append(gqlVideos, gqlVideo)
+	}
+
+	return gqlVideos, nil
 }
 
 // User returns generated.UserResolver implementation.
