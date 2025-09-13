@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"sort"
 	"time"
 
@@ -127,14 +128,22 @@ func (uc *VideoUseCase) GetUserVideoProcessing(ctx context.Context, userID strin
 }
 
 func (uc *VideoUseCase) UploadVideo(ctx context.Context, uploadVideo *domain.UploadVideo, uploaderID string, thumbnailImageURL string) (*domain.UploadVideoResponse, error) {
+	slog.Info("starting video upload", "video_id", uploadVideo.ID, "uploader_id", uploaderID, "title", uploadVideo.Title)
+
 	// Upload raw video file to storage
 	videoKey := fmt.Sprintf("raw-videos/%s/original.mp4", uploadVideo.ID)
-	if uc.storageClient != nil {
-		err := uc.storageClient.UploadFile(ctx, videoKey, uploadVideo.Video, "video/mp4")
-		if err != nil {
-			return nil, fmt.Errorf("failed to upload video file: %w", err)
-		}
+	if uc.storageClient == nil {
+		slog.Error("storage client not available", "video_id", uploadVideo.ID)
+		return nil, fmt.Errorf("storage client not available - cannot upload video file")
 	}
+
+	slog.Info("uploading video file to storage", "video_id", uploadVideo.ID, "key", videoKey)
+	err := uc.storageClient.UploadFile(ctx, videoKey, uploadVideo.Video, "video/mp4")
+	if err != nil {
+		slog.Error("failed to upload video file", "video_id", uploadVideo.ID, "error", err)
+		return nil, fmt.Errorf("failed to upload video file: %w", err)
+	}
+	slog.Info("video file uploaded successfully", "video_id", uploadVideo.ID)
 
 	// Create video entity with initial data
 	video := domain.NewVideo(
@@ -155,7 +164,7 @@ func (uc *VideoUseCase) UploadVideo(ctx context.Context, uploadVideo *domain.Upl
 	)
 
 	// Save to repository
-	err := uc.videoRepo.Create(ctx, video)
+	err = uc.videoRepo.Create(ctx, video)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create video: %w", err)
 	}
@@ -180,7 +189,9 @@ func (uc *VideoUseCase) UploadVideo(ctx context.Context, uploadVideo *domain.Upl
 	}
 
 	// Send message to Pub/Sub for async processing
-	if uc.pubsubClient != nil {
+	if uc.pubsubClient == nil {
+		slog.Warn("pubsub client not available - video processing message not sent", "video_id", video.ID)
+	} else {
 		message := VideoProcessingMessage{
 			VideoID:          video.ID,
 			VideoKey:         videoKey,
@@ -194,15 +205,20 @@ func (uc *VideoUseCase) UploadVideo(ctx context.Context, uploadVideo *domain.Upl
 
 		messageData, err := json.Marshal(message)
 		if err != nil {
+			slog.Error("failed to marshal processing message", "video_id", video.ID, "error", err)
 			return nil, fmt.Errorf("failed to marshal processing message: %w", err)
 		}
 
+		slog.Info("sending video processing message", "video_id", video.ID, "processing_id", processingInfo.ID)
 		err = uc.pubsubClient.PublishVideoProcessingMessage(ctx, "video-processing", messageData)
 		if err != nil {
-			// Log error but don't fail the upload
-			// TODO: Add proper logging
+			slog.Error("failed to send video processing message", "video_id", video.ID, "error", err)
+		} else {
+			slog.Info("video processing message sent successfully", "video_id", video.ID)
 		}
 	}
+
+	slog.Info("video upload completed successfully", "video_id", video.ID, "uploader_id", uploaderID)
 
 	// Return response
 	return &domain.UploadVideoResponse{

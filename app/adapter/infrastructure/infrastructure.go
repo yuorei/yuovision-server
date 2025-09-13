@@ -63,18 +63,24 @@ func NewInfrastructure(ctx context.Context, cfg InfraConfig) (*Infrastructure, e
 
 	// Initialize Pub/Sub Client
 	var pubsubClient *pubsub.Client
-	if cfg.PubSubConfig.ProjectID != "" {
+	if cfg.PubSubConfig.ProjectID != "" && cfg.PubSubConfig.CredentialsPath != "" {
 		client, err := pubsub.NewClient(ctx, pubsub.Config{
 			ProjectID:       cfg.PubSubConfig.ProjectID,
 			CredentialsPath: cfg.PubSubConfig.CredentialsPath,
 		})
 		if err != nil {
+			slog.Error("failed to initialize Pub/Sub client", "project_id", cfg.PubSubConfig.ProjectID, "error", err)
 			return nil, fmt.Errorf("failed to initialize Pub/Sub client with project ID '%s': %w", cfg.PubSubConfig.ProjectID, err)
 		}
 		pubsubClient = client
+		slog.Info("Pub/Sub client initialized successfully", "project_id", cfg.PubSubConfig.ProjectID)
 	} else {
-		slog.Warn("GOOGLE_CLOUD_PROJECT_ID is empty, skipping Pub/Sub client initialization")
-		// Create a dummy client or handle gracefully
+		if cfg.PubSubConfig.ProjectID == "" {
+			slog.Warn("GOOGLE_CLOUD_PROJECT_ID is empty, skipping Pub/Sub client initialization")
+		}
+		if cfg.PubSubConfig.CredentialsPath == "" {
+			slog.Warn("GOOGLE_APPLICATION_CREDENTIALS is empty, skipping Pub/Sub client initialization")
+		}
 		pubsubClient = nil
 	}
 
