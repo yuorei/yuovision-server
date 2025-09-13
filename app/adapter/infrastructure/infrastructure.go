@@ -43,8 +43,8 @@ type PubSubConfig struct {
 }
 
 func NewInfrastructure(ctx context.Context, cfg InfraConfig) (*Infrastructure, error) {
-	// Initialize Firestore
-	firestoreClient, err := firebase.NewFirestoreClient(ctx, cfg.FirebaseProjectID, cfg.FirebaseCredentialsPath)
+	// Initialize Firestore with Google Cloud Project ID (not Firebase Project ID)
+	firestoreClient, err := firebase.NewFirestoreClient(ctx, cfg.PubSubConfig.ProjectID, cfg.FirebaseCredentialsPath)
 	if err != nil {
 		return nil, err
 	}
