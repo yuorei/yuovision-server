@@ -210,7 +210,7 @@ func (uc *VideoUseCase) UploadVideo(ctx context.Context, uploadVideo *domain.Upl
 		}
 
 		slog.Info("sending video processing message", "video_id", video.ID, "processing_id", processingInfo.ID)
-		err = uc.pubsubClient.PublishVideoProcessingMessage(ctx, "video-processing", messageData)
+		err = uc.pubsubClient.PublishVideoProcessingMessage(ctx, "yuovision-prod-video-processing", messageData)
 		if err != nil {
 			slog.Error("failed to send video processing message", "video_id", video.ID, "error", err)
 		} else {
