@@ -49,6 +49,10 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) PublishVideoProcessingMessage(ctx context.Context, topicID string, data []byte) error {
+	if c.client == nil {
+		return fmt.Errorf("pubsub client is nil")
+	}
+	
 	topic := c.client.Topic(topicID)
 	result := topic.Publish(ctx, &pubsub.Message{
 		Data: data,
