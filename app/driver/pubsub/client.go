@@ -49,20 +49,27 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) PublishVideoProcessingMessage(ctx context.Context, topicID string, data []byte) error {
+	slog.Info("attempting to publish video processing message", "topic_id", topicID, "data_length", len(data))
+
 	if c.client == nil {
+		slog.Error("pubsub client is nil")
 		return fmt.Errorf("pubsub client is nil")
 	}
 
 	topic := c.client.Topic(topicID)
+	slog.Info("publishing message to topic", "topic_id", topicID)
+
 	result := topic.Publish(ctx, &pubsub.Message{
 		Data: data,
 	})
 
-	_, err := result.Get(ctx)
+	messageID, err := result.Get(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to publish message: %w", err)
+		slog.Error("failed to publish message", "topic_id", topicID, "error", err)
+		return fmt.Errorf("failed to publish message to topic %s: %w", topicID, err)
 	}
 
+	slog.Info("message published successfully", "topic_id", topicID, "message_id", messageID)
 	return nil
 }
 

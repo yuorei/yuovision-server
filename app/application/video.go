@@ -190,7 +190,8 @@ func (uc *VideoUseCase) UploadVideo(ctx context.Context, uploadVideo *domain.Upl
 
 	// Send message to Pub/Sub for async processing
 	if uc.pubsubClient == nil {
-		slog.Warn("pubsub client not available - video processing message not sent", "video_id", video.ID)
+		slog.Error("pubsub client not available - video processing message not sent", "video_id", video.ID)
+		return nil, fmt.Errorf("pubsub client not available - cannot process video")
 	} else {
 		message := VideoProcessingMessage{
 			VideoID:          video.ID,
@@ -209,12 +210,18 @@ func (uc *VideoUseCase) UploadVideo(ctx context.Context, uploadVideo *domain.Upl
 			return nil, fmt.Errorf("failed to marshal processing message: %w", err)
 		}
 
-		slog.Info("sending video processing message", "video_id", video.ID, "processing_id", processingInfo.ID)
-		err = uc.pubsubClient.PublishVideoProcessingMessage(ctx, "yuovision-prod-video-processing", messageData)
+		slog.Info("sending video processing message", "video_id", video.ID, "processing_id", processingInfo.ID, "message", string(messageData))
+
+		// Use environment variable for topic name instead of hardcoded value
+		topicName := "yuovision-prod-video-processing" // TODO: Move to environment variable
+		slog.Info("using topic for video processing", "topic_name", topicName)
+
+		err = uc.pubsubClient.PublishVideoProcessingMessage(ctx, topicName, messageData)
 		if err != nil {
-			slog.Error("failed to send video processing message", "video_id", video.ID, "error", err)
+			slog.Error("failed to send video processing message", "video_id", video.ID, "topic", topicName, "error", err)
+			return nil, fmt.Errorf("failed to send video processing message: %w", err)
 		} else {
-			slog.Info("video processing message sent successfully", "video_id", video.ID)
+			slog.Info("video processing message sent successfully", "video_id", video.ID, "topic", topicName)
 		}
 	}
 
