@@ -68,12 +68,42 @@ func NewR2Client(ctx context.Context, cfg R2Config) (*R2Client, error) {
 }
 
 func (r2 *R2Client) UploadFile(ctx context.Context, key string, body io.Reader, contentType string) error {
-	_, err := r2.client.PutObject(ctx, &s3.PutObjectInput{
+	input := &s3.PutObjectInput{
 		Bucket:      aws.String(r2.bucket),
 		Key:         aws.String(key),
 		Body:        body,
 		ContentType: aws.String(contentType),
-	})
+	}
+
+	if seeker, ok := body.(io.ReadSeeker); ok {
+		// Remember current position so callers can continue using the reader.
+		currentPos, err := seeker.Seek(0, io.SeekCurrent)
+		if err != nil {
+			return fmt.Errorf("failed to determine current position for %s: %w", key, err)
+		}
+
+		// Compute the payload size to avoid chunked uploads that occasionally result in
+		// empty objects on R2 when the reader cursor is already at EOF.
+		size, err := seeker.Seek(0, io.SeekEnd)
+		if err != nil {
+			return fmt.Errorf("failed to determine payload size for %s: %w", key, err)
+		}
+
+		if _, err := seeker.Seek(0, io.SeekStart); err != nil {
+			return fmt.Errorf("failed to rewind reader for %s: %w", key, err)
+		}
+
+		input.Body = seeker
+		input.ContentLength = aws.Int64(size)
+
+		defer func() {
+			if _, err := seeker.Seek(currentPos, io.SeekStart); err != nil {
+				slog.Warn("failed to restore reader position after upload", "key", key, "error", err)
+			}
+		}()
+	}
+
+	_, err := r2.client.PutObject(ctx, input)
 	if err != nil {
 		return fmt.Errorf("failed to upload file %s: %w", key, err)
 	}
