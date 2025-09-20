@@ -184,6 +184,14 @@ func (r *queryResolver) UserByAuth(ctx context.Context) (*model.User, error) {
 
 // ID is the resolver for the id field.
 func (r *userResolver) ID(ctx context.Context, obj *model.User) (string, error) {
+	if obj == nil {
+		return "", fmt.Errorf("user payload is missing")
+	}
+
+	if obj.ID == "" {
+		return "", fmt.Errorf("user id is empty")
+	}
+
 	return obj.ID, nil
 }
 
